@@ -1,0 +1,81 @@
+NAME
+    Test::Valgrind - Test your code through valgrind.
+
+VERSION
+    Version 0.01
+
+SYNOPSIS
+        use Test::More;
+        eval 'use Test::Valgrind';
+        plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind';
+
+        # Code to inspect for memory leaks/errors.
+
+DESCRIPTION
+    This module lets you run some code through the valgrind memory debugger,
+    to test it for memory errors and leaks. Just add "use Test::Valgrind" at
+    the beginning of the code you want to test. Behind the hood,
+    "Test::Valgrind::import" forks so that the child can basically "exec
+    'valgrind', $^X, $0" (except that of course $0 isn't right there). The
+    parent then parses the report output by valgrind and pass or fail tests
+    accordingly.
+
+CONFIGURATION
+    You can pass parameters to "import" as a list of key / value pairs,
+    where valid keys are :
+
+    "supp => $file"
+        Also use suppressions from $file besides perl's.
+
+    "no_supp => $bool"
+        If true, do not use any suppressions.
+
+    "callers => $number"
+        Specify the maximum stack depth studied when valgrind encounters an
+        error. Raising this number improves granularity. Default is 50.
+
+    "extra => [ @args ]"
+        Add @args to valgrind parameters.
+
+    "diag => $bool"
+        If true, print the raw output of valgrind as diagnostics (may be
+        quite verbose).
+
+    "no_test => $bool"
+        If true, do not actually output the plan and the tests results.
+
+CAVEATS
+    You can't use this module to test code given by the "-e" command-line
+    switch. This module is not really secure. It's definitely not taint
+    safe. That shouldn't be a problem for test files. If your tests output
+    to STDERR, everything will be eaten in the process.
+
+DEPENDENCIES
+    Valgrind 3.1.0 (<http://valgrind.org>).
+
+    Carp, POSIX (core modules since perl 5) and Test::More (since 5.6.2).
+
+AUTHOR
+    Vincent Pit, "<perl at profvince.com>", <http://www.profvince.com>.
+
+    You can contact me by mail or on #perl @ FreeNode (vincent or
+    Prof_Vince).
+
+BUGS
+    Please report any bugs or feature requests to "bug-test-valgrind at
+    rt.cpan.org", or through the web interface at
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind>. I will
+    be notified, and then you'll automatically be notified of progress on
+    your bug as I make changes.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Test::Valgrind
+
+COPYRIGHT & LICENSE
+    Copyright 2008 Vincent Pit, all rights reserved.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
