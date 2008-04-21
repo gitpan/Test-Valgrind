@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:                Test-Valgrind
-version:             0.01
-abstract:            Test your code through valgrind.
+version:             0.02
+abstract:            Test Perl code through valgrind.
 license:             perl
 author:              
     - Vincent Pit <perl@profvince.com>
@@ -10,6 +10,7 @@ distribution_type:   module
 requires:     
     Carp:                          0
     Exporter:                      0
+    Perl::Destruct::Level:         0
     POSIX:                         0
     Test::More:                    0
 meta-spec:

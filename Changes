@@ -1,5 +1,16 @@
 Revision history for Test-Valgrind
 
+0.02    2008-04-21 15:25 UTC
+        + Add : Test::Valgrind now depends on Perl::Destruct::Level. This is
+                needed for non-debugging perls because we can't set their
+                level of memory cleanup correctness on exit with the
+                PERL_DESTRUCT_LEVEL environment variable.
+        + Add : Hardcode valgrind path into the new constant
+                Test::Valgrind::Suppressions::VG_PATH.
+        + Chg : Test::Valgrind::Suppressions::supppath() is now supp_path().
+        + Chg : lib/Test/Valgrind/Suppressions.pm.tpl was renamed to
+                lib/Test/Valgrind/Suppressions.tpl for file portability reasons.
+
 0.01    2008-04-19 15:50 UTC
         First version, released on an unsuspecting world.
 

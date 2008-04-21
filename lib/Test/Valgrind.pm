@@ -7,31 +7,37 @@ use Carp qw/croak/;
 use POSIX qw/SIGTERM/;
 use Test::More;
 
+use Perl::Destruct::Level level => 3;
+
 use Test::Valgrind::Suppressions;
 
 =head1 NAME
 
-Test::Valgrind - Test your code through valgrind.
+Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
     use Test::More;
     eval 'use Test::Valgrind';
-    plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind';
+    plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind' if $@;
 
     # Code to inspect for memory leaks/errors.
 
 =head1 DESCRIPTION
 
 This module lets you run some code through the B<valgrind> memory debugger, to test it for memory errors and leaks. Just add C<use Test::Valgrind> at the beginning of the code you want to test. Behind the hood, C<Test::Valgrind::import> forks so that the child can basically C<exec 'valgrind', $^X, $0> (except that of course C<$0> isn't right there). The parent then parses the report output by valgrind and pass or fail tests accordingly.
+
+You can also use it from the command-line to test a given script :
+
+    perl -MTest::Valgrind leaky.pl
 
 =head1 CONFIGURATION
 
@@ -112,7 +118,7 @@ sub import {
     '--error-limit=yes'
    );
    unless ($args{no_supp}) {
-    for (Test::Valgrind::Suppressions::supppath(), $args{supp}) {
+    for (Test::Valgrind::Suppressions::supp_path(), $args{supp}) {
      push @args, '--suppressions=' . $_ if $_;
     }
    }
@@ -125,7 +131,8 @@ sub import {
    print STDERR "valgrind @args\n" if $args{diag};
    local $ENV{PERL_DESTRUCT_LEVEL} = 3;
    local $ENV{PERL_DL_NONLAZY} = 1;
-   exec 'valgrind', @args;
+   my $vg = Test::Valgrind::Suppressions::VG_PATH;
+   exec $vg, @args if $vg and -x $vg;
   }
   close $wtr or croak "close(\$wtr): $!";
   local $SIG{INT} = sub { kill -(SIGTERM) => $pid };
@@ -168,14 +175,20 @@ sub import {
 =head1 CAVEATS
 
 You can't use this module to test code given by the C<-e> command-line switch.
+
+Results will most likely be better if your perl is built with debugging enabled. Using the latest valgrind available will also help.
+
 This module is not really secure. It's definitely not taint safe. That shouldn't be a problem for test files.
-If your tests output to STDERR, everything will be eaten in the process.
+
+If your tests output to STDERR, everything will be eaten in the process. In particular, running this module against test files will obliterate their original test results.
 
 =head1 DEPENDENCIES
 
 Valgrind 3.1.0 (L<http://valgrind.org>).
 
 L<Carp>, L<POSIX> (core modules since perl 5) and L<Test::More> (since 5.6.2).
+
+L<Perl::Destruct::Level>.
 
 =head1 AUTHOR
 
@@ -193,12 +206,17 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Test::Valgrind
 
+=head1 ACKNOWLEDGEMENTS
+
+Rafaël Garcia-Suarez, for writing and instructing me about the existence of L<Perl::Destruct::Level> (Elizabeth Mattijsen is a close second).
+
+H.Merijn Brand, for daring to test this thing.
+
 =head1 COPYRIGHT & LICENSE
 
 Copyright 2008 Vincent Pit, all rights reserved.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut
 

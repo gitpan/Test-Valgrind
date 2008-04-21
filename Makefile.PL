@@ -3,9 +3,10 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 my $has_vg = 0;
+my $vg;
 print 'Checking for valgrind >= 3.1.0 in PATH... ';
 for (split /:/, $ENV{PATH}) {
- my $vg = $_ . '/valgrind';
+ $vg = $_ . '/valgrind';
  if (-x $vg) {
   my $ver = qx/$vg --version/;
   if ($ver =~ s/^valgrind-//) {
@@ -38,7 +39,17 @@ sub build_req {
  return $build_req;
 }
 
-my $supp = 'Test/Valgrind/perlTestValgrind.supp';
+my $supp = 'lib/Test/Valgrind/Suppressions';
+open my $tpl, '<', $supp . '.tpl' or die "open($supp.tpl): $!";
+open my $out, '>', $supp . '.pm'  or die "open($supp.pm): $!";
+while (<$tpl>) {
+ s/(VG_PATH\s*=>\s*)undef/$1'$vg'/g;
+ print $out $_;
+}
+close $out;
+close $tpl;
+
+$supp = 'Test/Valgrind/perlTestValgrind.supp';
 
 WriteMakefile(
     NAME          => 'Test::Valgrind',
@@ -55,10 +66,11 @@ WriteMakefile(
         'lib/' . $supp => '$(INST_ARCHLIB)/' . $supp,
     },
     PREREQ_PM     => {
-        'Carp'       => 0,
-        'Exporter'   => 0,
-        'POSIX'      => 0,
-        'Test::More' => 0,
+        'Carp'                  => 0,
+        'Exporter'              => 0,
+        'POSIX'                 => 0,
+        'Perl::Destruct::Level' => 0,
+        'Test::More'            => 0,
     },
     dist          => {
         PREOP      => 'pod2text lib/Test/Valgrind.pm > $(DISTVNAME)/README; '

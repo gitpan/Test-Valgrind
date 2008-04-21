@@ -1,13 +1,13 @@
 NAME
-    Test::Valgrind - Test your code through valgrind.
+    Test::Valgrind - Test Perl code through valgrind.
 
 VERSION
-    Version 0.01
+    Version 0.02
 
 SYNOPSIS
         use Test::More;
         eval 'use Test::Valgrind';
-        plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind';
+        plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind' if $@;
 
         # Code to inspect for memory leaks/errors.
 
@@ -19,6 +19,10 @@ DESCRIPTION
     'valgrind', $^X, $0" (except that of course $0 isn't right there). The
     parent then parses the report output by valgrind and pass or fail tests
     accordingly.
+
+    You can also use it from the command-line to test a given script :
+
+        perl -MTest::Valgrind leaky.pl
 
 CONFIGURATION
     You can pass parameters to "import" as a list of key / value pairs,
@@ -46,14 +50,24 @@ CONFIGURATION
 
 CAVEATS
     You can't use this module to test code given by the "-e" command-line
-    switch. This module is not really secure. It's definitely not taint
-    safe. That shouldn't be a problem for test files. If your tests output
-    to STDERR, everything will be eaten in the process.
+    switch.
+
+    Results will most likely be better if your perl is built with debugging
+    enabled. Using the latest valgrind available will also help.
+
+    This module is not really secure. It's definitely not taint safe. That
+    shouldn't be a problem for test files.
+
+    If your tests output to STDERR, everything will be eaten in the process.
+    In particular, running this module against test files will obliterate
+    their original test results.
 
 DEPENDENCIES
     Valgrind 3.1.0 (<http://valgrind.org>).
 
     Carp, POSIX (core modules since perl 5) and Test::More (since 5.6.2).
+
+    Perl::Destruct::Level.
 
 AUTHOR
     Vincent Pit, "<perl at profvince.com>", <http://www.profvince.com>.
@@ -72,6 +86,13 @@ SUPPORT
     You can find documentation for this module with the perldoc command.
 
         perldoc Test::Valgrind
+
+ACKNOWLEDGEMENTS
+    Rafaël Garcia-Suarez, for writing and instructing me about the
+    existence of Perl::Destruct::Level (Elizabeth Mattijsen is a close
+    second).
+
+    H.Merijn Brand, for daring to test this thing.
 
 COPYRIGHT & LICENSE
     Copyright 2008 Vincent Pit, all rights reserved.

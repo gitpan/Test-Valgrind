@@ -2,10 +2,12 @@
 
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 
-use Test::Valgrind::Suppressions qw/supppath/;
+use Test::Valgrind::Suppressions qw/supp_path VG_PATH/;
 
-my $path = supppath();
+my $path = supp_path();
 like($path, qr!Test/Valgrind/perlTestValgrind\.supp$!,
      'supppath() returns the path to the suppression file');
+
+isnt(VG_PATH, undef, 'VG_PATH is defined');
