@@ -1,5 +1,8 @@
 Revision history for Test-Valgrind
 
+0.03    2008-04-21 15:35 UTC
+        + Fix : Include the mock Suppressions.pm rather than an empty file.
+
 0.02    2008-04-21 15:25 UTC
         + Add : Test::Valgrind now depends on Perl::Destruct::Level. This is
                 needed for non-debugging perls because we can't set their
