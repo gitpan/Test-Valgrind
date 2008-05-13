@@ -1,5 +1,9 @@
 Revision history for Test-Valgrind
 
+0.04    2008-05-13 16:25 UTC
+        + Chg : Don't smoke this on 5.005 please.
+        + Chg : Better way to find the valgrind executable.
+
 0.03    2008-04-21 15:35 UTC
         + Fix : Include the mock Suppressions.pm rather than an empty file.
 

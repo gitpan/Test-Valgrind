@@ -1,25 +1,26 @@
+use 5.006;
+
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
-my $has_vg = 0;
 my $vg;
 print 'Checking for valgrind >= 3.1.0 in PATH... ';
 for (split /:/, $ENV{PATH}) {
- $vg = $_ . '/valgrind';
- if (-x $vg) {
-  my $ver = qx/$vg --version/;
+ $_ .= '/valgrind';
+ if (-x) {
+  my $ver = qx/$_ --version/;
   if ($ver =~ s/^valgrind-//) {
    $ver = join '', map chr, split /\./, $ver;
    if ($ver ge v3.1.0) {
-    print "yes, $vg\n";
-    $has_vg = 1;
+    print "yes, $_\n";
+    $vg = $_;
     last;
    }
   }
  }
 }
-if (!$has_vg) {
+if (!$vg) {
  print "no\n";
  die 'OS unsupported';
 }

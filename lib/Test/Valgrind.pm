@@ -17,11 +17,11 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
@@ -88,20 +88,22 @@ sub import {
    $file = $next;
   }
   return if not $file or $file eq '-e';
-  my $valgrind;
-  for (split /:/, $ENV{PATH}) {
-   my $vg = $_ . '/valgrind';
-   if (-x $vg) {
-    $valgrind = $vg;
-    last;
-   }
-  }
-  if (!$valgrind) {
-   plan skip_all => 'No valgrind executable could be found in your path';
-   return;
-  }
   my $callers = $args{callers} || 50;
   $callers = int $callers;
+  my $vg = Test::Valgrind::Suppressions::VG_PATH;
+  if (!$vg || !-x $vg) {
+   for (split /:/, $ENV{PATH}) {
+    $_ .= '/valgrind';
+    if (-x) {
+     $vg = $_;
+     last;
+    }
+   }
+   if (!$vg) {
+    plan skip_all => 'No valgrind executable could be found in your path';
+    return;
+   } 
+  }
   pipe my $rdr, my $wtr or croak "pipe(\$rdr, \$wtr): $!";
   my $pid = fork;
   if (!defined $pid) {
@@ -131,7 +133,6 @@ sub import {
    print STDERR "valgrind @args\n" if $args{diag};
    local $ENV{PERL_DESTRUCT_LEVEL} = 3;
    local $ENV{PERL_DL_NONLAZY} = 1;
-   my $vg = Test::Valgrind::Suppressions::VG_PATH;
    exec $vg, @args if $vg and -x $vg;
   }
   close $wtr or croak "close(\$wtr): $!";

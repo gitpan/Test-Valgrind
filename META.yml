@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Test-Valgrind
-version:             0.03
+version:             0.04
 abstract:            Test Perl code through valgrind.
 license:             perl
 author:              
