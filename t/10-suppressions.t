@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Test::More tests => 2;
 
+use lib qw{blib/archpub};
 use Test::Valgrind::Suppressions qw/supp_path VG_PATH/;
 
 my $path = supp_path();

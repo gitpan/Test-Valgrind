@@ -17,11 +17,11 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
@@ -39,41 +39,75 @@ You can also use it from the command-line to test a given script :
 
     perl -MTest::Valgrind leaky.pl
 
+Due to the nature of perl's memory allocator, this module can't track leaks of Perl objects. This includes non-mortalized scalars and memory cycles. However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>. As such, it's complementary to the other very good leak detectors listed in the L</SEE ALSO> section.
+
 =head1 CONFIGURATION
 
 You can pass parameters to C<import> as a list of key / value pairs, where valid keys are :
 
 =over 4
 
-=item C<< supp => $file >>
+=item *
+
+C<< supp => $file >>
 
 Also use suppressions from C<$file> besides perl's.
 
-=item C<< no_supp => $bool >>
+=item *
+
+C<< no_supp => $bool >>
 
 If true, do not use any suppressions.
 
-=item C<< callers => $number >>
+=item *
 
-Specify the maximum stack depth studied when valgrind encounters an error. Raising this number improves granularity. Default is 50.
+C<< callers => $number >>
 
-=item C<< extra => [ @args ] >>
+Specify the maximum stack depth studied when valgrind encounters an error. Raising this number improves granularity. Default is 12.
+
+=item *
+
+C<< extra => [ @args ] >>
 
 Add C<@args> to valgrind parameters.
 
-=item C<< diag => $bool >>
+=item *
+
+C<< diag => $bool >>
 
 If true, print the raw output of valgrind as diagnostics (may be quite verbose).
 
-=item C<< no_test => $bool >>
+=item *
+
+C<< no_test => $bool >>
 
 If true, do not actually output the plan and the tests results.
+
+=item *
+
+C<< cb => sub { my ($val, $name) = @_; ...; return $passed } >>
+
+Specifies a subroutine to execute for each test instead of C<Test::More::is>. It receives the number of bytes leaked in C<$_[0]> and the test name in C<$_[1]>, and is expected to return true if the test passed and false otherwise. Defaults to
+
+    sub {
+     is($_[0], 0, $_[1]);
+     (defined $_[0] and $_[0] == 0) : 1 : 0
+    }
 
 =back
 
 =cut
 
 my $run;
+
+sub _counter {
+ (defined $_[0] and $_[0] == 0) ? 1 : 0;
+}
+
+sub _tester {
+ is($_[0], 0, $_[1]);
+ _counter(@_);
+}
 
 sub import {
  shift;
@@ -88,7 +122,8 @@ sub import {
    $file = $next;
   }
   return if not $file or $file eq '-e';
-  my $callers = $args{callers} || 50;
+  my $callers = $args{callers};
+  $callers = 12 unless defined $callers;
   $callers = int $callers;
   my $vg = Test::Valgrind::Suppressions::VG_PATH;
   if (!$vg || !-x $vg) {
@@ -133,7 +168,7 @@ sub import {
    print STDERR "valgrind @args\n" if $args{diag};
    local $ENV{PERL_DESTRUCT_LEVEL} = 3;
    local $ENV{PERL_DL_NONLAZY} = 1;
-   exec $vg, @args if $vg and -x $vg;
+   exec $vg, @args;
   }
   close $wtr or croak "close(\$wtr): $!";
   local $SIG{INT} = sub { kill -(SIGTERM) => $pid };
@@ -162,10 +197,11 @@ sub import {
    }
   }
   waitpid $pid, 0;
-  my $failed = 0;
+  my $failed = 5;
+  my $cb = ($args{no_test} ? \&_counter
+                           : ($args{cb} ? $args{cb} : \&_tester));
   for (@tests) {
-   is($res{$_}, 0, 'valgrind ' . $_) unless $args{no_test};
-   ++$failed if defined $res{$_} and $res{$_} != 0;
+   $failed -= $cb->($res{$_}, 'valgrind ' . $_) ? 1 : 0;
   }
   exit $failed;
  } else {
@@ -190,6 +226,10 @@ Valgrind 3.1.0 (L<http://valgrind.org>).
 L<Carp>, L<POSIX> (core modules since perl 5) and L<Test::More> (since 5.6.2).
 
 L<Perl::Destruct::Level>.
+
+=head1 SEE ALSO
+
+L<Devel::Leak>, L<Devel::LeakTrace>, L<Devel::LeakTrace::Fast>.
 
 =head1 AUTHOR
 

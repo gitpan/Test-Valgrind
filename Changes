@@ -1,5 +1,10 @@
 Revision history for Test-Valgrind
 
+0.05    2008-08-25 22:05 UTC
+        + Chg : Lower the default caller to 12.
+        + Tst : Add a real-life test that gets executed only if you have a C
+                compiler.
+
 0.04    2008-05-13 16:25 UTC
         + Chg : Don't smoke this on 5.005 please.
         + Chg : Better way to find the valgrind executable.

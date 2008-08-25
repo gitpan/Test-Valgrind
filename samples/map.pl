@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use lib qw{blib/lib blib/arch};
+use lib qw{blib/lib blib/archpub};
 use Test::Valgrind;
 
 {

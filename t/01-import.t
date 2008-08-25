@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More tests => 2;
 
+use lib qw{blib/archpub};
 require Test::Valgrind::Suppressions;
 
 for (qw/supp_path VG_PATH/) {
