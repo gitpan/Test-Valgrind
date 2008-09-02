@@ -31,7 +31,7 @@ sub tester {
 
 eval {
  require XSLoader;
- XSLoader::load('Test::Valgrind', 0.05);
+ XSLoader::load('Test::Valgrind', 0.051);
 };
 if ($@) {
  plan skip_all => "XS test code not available ($@)";

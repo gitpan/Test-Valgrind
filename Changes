@@ -1,5 +1,8 @@
 Revision history for Test-Valgrind
 
+0.051   2008-09-02 17:20 UTC
+        + Fix : Forgot to upgrade version of the suppression placeholder module.
+
 0.05    2008-08-25 22:05 UTC
         + Chg : Lower the default caller to 12.
         + Tst : Add a real-life test that gets executed only if you have a C

@@ -17,11 +17,11 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.05
+Version 0.051
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.051';
 
 =head1 SYNOPSIS
 
