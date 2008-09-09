@@ -17,11 +17,11 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.051
+Version 0.06
 
 =cut
 
-our $VERSION = '0.051';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
@@ -114,14 +114,23 @@ sub import {
  croak 'Optional arguments must be passed as key => value pairs' if @_ % 2;
  my %args = @_;
  if (!defined $args{run} && !$run) {
-  my ($file, $next);
+  my ($file, $pm, $next);
   my $l = 0;
   while ($l < 1000) {
    $next = (caller $l++)[1];
    last unless defined $next;
-   $file = $next;
+   next unless $next ne '-e' and $next !~ /^\s*\(\s*eval\s*\d*\s*\)\s*$/
+                             and -f $next;
+   if ($next =~ /\.pm$/) {
+    $pm = $next;
+   } else {
+    $file = $next;
+   }
   }
-  return if not $file or $file eq '-e';
+  unless (defined $file) {
+   $file = $pm;
+   return unless defined $pm;
+  }
   my $callers = $args{callers};
   $callers = 12 unless defined $callers;
   $callers = int $callers;

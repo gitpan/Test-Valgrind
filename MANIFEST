@@ -15,6 +15,7 @@ t/00-load.t
 t/01-import.t
 t/10-suppressions.t
 t/20-good.t
+t/21-good-block.t
 t/30-bad.t
 t/90-boilerplate.t
 t/91-pod.t

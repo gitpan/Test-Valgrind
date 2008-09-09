@@ -1,5 +1,14 @@
 Revision history for Test-Valgrind
 
+0.06    2008-09-09 22:10 UTC
+        + Fix : Suppressions were installed in the wrong path. Thanks Marvin
+                Humphrey for reporting this.
+        + Fix : Really load XSLoader when generating suppressions. Thanks Marvin
+                Humphrey again for bringing this to my attention.
+        + Fix : The logic for finding the file to run through valgrind was
+                flawed, which lead to generate suppressions against
+                Test/Valgrind.pm only.
+
 0.051   2008-09-02 17:20 UTC
         + Fix : Forgot to upgrade version of the suppression placeholder module.
 

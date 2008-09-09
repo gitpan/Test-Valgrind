@@ -29,10 +29,10 @@ sub tester {
  return $passed;
 }
 
-eval {
+eval "
  require XSLoader;
- XSLoader::load('Test::Valgrind', 0.051);
-};
+ XSLoader::load('Test::Valgrind', 0.06);
+";
 if ($@) {
  plan skip_all => "XS test code not available ($@)";
 } else {

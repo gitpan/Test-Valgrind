@@ -2,7 +2,7 @@ NAME
     Test::Valgrind - Test Perl code through valgrind.
 
 VERSION
-    Version 0.051
+    Version 0.06
 
 SYNOPSIS
         use Test::More;

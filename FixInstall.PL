@@ -24,7 +24,7 @@ if (-e $bak && (stat $bak)[9] >= (stat $mk)[9]) { # mtime
 open my $in,  '<', $bak or die "open(<$bak): $!";
 open my $out, '>', $mk  or die "open(>$mk): $!";
 while (<$in>) {
- s!^(\s*)\$\(INST_ARCHLIB\)\s+(\$\(DESTINSTALL(?:ARCHLIB|SITEARCH|VENDORARCH)\))\s*\\\s*!$1blib/archpub $2/\$(FULLEXT) \\\n!g;
+ s!^(\s*)\$\(INST_ARCHLIB\)\s+(\$\(DESTINSTALL(?:ARCHLIB|SITEARCH|VENDORARCH)\))\s*\\\s*!$1blib/archpub $2 \\\n!g;
  print $out $_;
 }
 close $out;

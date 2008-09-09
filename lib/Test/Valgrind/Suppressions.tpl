@@ -9,11 +9,11 @@ Test::Valgrind::Suppressions - Placeholder for architecture-dependant perl suppr
 
 =head1 VERSION
 
-Version 0.051
+Version 0.06
 
 =cut
 
-our $VERSION = '0.051';
+our $VERSION = '0.06';
 
 =head1 DESCRIPTION
 
