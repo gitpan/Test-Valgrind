@@ -7,10 +7,27 @@ use Config qw/%Config/;
 
 use Test::More;
 
+my $dbg;
+
 sub tester {
  my ($a, $desc) = @_;
  my $passed;
- my $dbg = eval "Test::Valgrind::DEBUGGING()";
+ if (!defined $dbg) {
+  eval "
+   use lib qw{blib/arch};
+   require XSLoader;
+   XSLoader::load('Test::Valgrind', \$Test::Valgrind::VERSION);
+  ";
+  if ($@) {
+   my $err = $@;
+   $dbg = 0;
+   chomp $err;
+   diag "XS test code not available ($err)";
+  } else {
+   my $ret = eval "Test::Valgrind::DEBUGGING()";
+   $dbg = $@ ? 0 : $ret;
+  }
+ }
  if ($desc =~ /still\s+reachable/) {
   $passed = $a >= 9900 && $a < 10100;
   if ($dbg) {
@@ -29,18 +46,18 @@ sub tester {
  return $passed;
 }
 
-eval "
- require XSLoader;
- XSLoader::load('Test::Valgrind', 0.06);
-";
+use lib qw{blib/archpub};
+eval 'use Test::Valgrind cb => \&tester';
 if ($@) {
- plan skip_all => "XS test code not available ($@)";
+ diag $@;
+ plan skip_all => 'Test::Valgrind is required to run test your distribution with valgrind';
 } else {
- use lib qw{blib/archpub};
- eval 'use Test::Valgrind cb => \&tester;';
- if ($@) {
-  plan skip_all => 'Test::Valgrind is required to run test your distribution with valgrind';
- } else {
+ eval "
+  use lib qw{blib/arch};
+  require XSLoader;
+  XSLoader::load('Test::Valgrind', \$Test::Valgrind::VERSION);
+ ";
+ unless ($@) {
   Test::Valgrind::leak();
  }
 }

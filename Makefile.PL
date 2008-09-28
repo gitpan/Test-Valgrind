@@ -108,9 +108,10 @@ WriteMakefile(
     PREREQ_PM     => {
         'Carp'                  => 0,
         'Exporter'              => 0,
+        'Fcntl'                 => 0,
         'POSIX'                 => 0,
         'Perl::Destruct::Level' => 0,
-        'Test::More'            => 0,
+        'Test::Builder'         => 0,
     },
     dist          => {
         PREOP      => "touch lib/$supp; "
@@ -123,6 +124,11 @@ WriteMakefile(
 1 while unlink 'lib/' . $supp;
 
 package MY;
+
+sub test {
+ my $test = shift->SUPER::test(@_);
+ return "test :: Makefile.bak blib/archpub/Test/Valgrind/perlTestValgrind.supp\n" . $test;
+}
 
 sub postamble {
  <<'POSTAMBLE';

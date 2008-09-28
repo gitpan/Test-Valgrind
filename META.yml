@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Test-Valgrind
-version:             0.06
+version:             0.07
 abstract:            Test Perl code through valgrind.
 license:             perl
 author:              
@@ -10,9 +10,10 @@ distribution_type:   module
 requires:     
     Carp:                          0
     Exporter:                      0
+    Fcntl:                         0
     Perl::Destruct::Level:         0
     POSIX:                         0
-    Test::More:                    0
+    Test::Builder:                 0
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
     version: 1.3

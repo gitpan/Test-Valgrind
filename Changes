@@ -1,5 +1,12 @@
 Revision history for Test-Valgrind
 
+0.07    2008-09-30 13:35 UTC
+        + Chg : Now conforms to the Test::Builder framework.
+        + Fix : STDERR is longer eaten.
+        + Fix : Eat STDOUT or print it as diagnostics, but never let him go
+                through naked, as this may fiddle with the tests output.
+        + Fix : 'make test' without prior 'make'.
+
 0.06    2008-09-09 22:10 UTC
         + Fix : Suppressions were installed in the wrong path. Thanks Marvin
                 Humphrey for reporting this.

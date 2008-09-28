@@ -23,6 +23,8 @@ if ($@) {
  } else {
   diag $@;
  }
+ plan tests => 1;
+ fail('fake');
 }
 
 1;

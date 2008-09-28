@@ -5,7 +5,8 @@ use warnings;
 
 use Carp qw/croak/;
 use POSIX qw/SIGTERM/;
-use Test::More;
+use Fcntl qw/F_SETFD/;
+use Test::Builder;
 
 use Perl::Destruct::Level level => 3;
 
@@ -17,11 +18,11 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 SYNOPSIS
 
@@ -98,6 +99,8 @@ Specifies a subroutine to execute for each test instead of C<Test::More::is>. It
 
 =cut
 
+my $Test = Test::Builder->new;
+
 my $run;
 
 sub _counter {
@@ -105,7 +108,7 @@ sub _counter {
 }
 
 sub _tester {
- is($_[0], 0, $_[1]);
+ $Test->is_num($_[0], 0, $_[1]);
  _counter(@_);
 }
 
@@ -144,24 +147,29 @@ sub import {
     }
    }
    if (!$vg) {
-    plan skip_all => 'No valgrind executable could be found in your path';
+    $Test->skip_all('No valgrind executable could be found in your path');
     return;
    } 
   }
-  pipe my $rdr, my $wtr or croak "pipe(\$rdr, \$wtr): $!";
+  pipe my $ordr, my $owtr or die "pipe(\$ordr, \$owtr): $!";
+  pipe my $vrdr, my $vwtr or die "pipe(\$vrdr, \$vwtr): $!";
   my $pid = fork;
   if (!defined $pid) {
-   croak "fork(): $!";
+   die "fork(): $!";
   } elsif ($pid == 0) {
-   setpgrp 0, 0 or croak "setpgrp(0, 0): $!";
-   close $rdr or croak "close(\$rdr): $!";
-   open STDERR, '>&', $wtr or croak "open(STDERR, '>&', \$wtr): $!";
+   setpgrp 0, 0 or die "setpgrp(0, 0): $!";
+   close $ordr or die "close(\$ordr): $!";
+   open STDOUT, '>&=', $owtr or die "open(STDOUT, '>&=', \$owtr): $!";
+   close $vrdr or die "close(\$vrdr): $!";
+   fcntl $vwtr, F_SETFD, 0 or die "fcntl(\$vwtr, F_SETFD, 0): $!";
    my @args = (
+    $vg,
     '--tool=memcheck',
     '--leak-check=full',
     '--leak-resolution=high',
     '--num-callers=' . $callers,
-    '--error-limit=yes'
+    '--error-limit=yes',
+    '--log-fd=' . fileno($vwtr)
    );
    unless ($args{no_supp}) {
     for (Test::Valgrind::Suppressions::supp_path(), $args{supp}) {
@@ -174,24 +182,26 @@ sub import {
    push @args, $^X;
    push @args, '-I' . $_ for @INC;
    push @args, '-MTest::Valgrind=run,1', $file;
-   print STDERR "valgrind @args\n" if $args{diag};
+   print STDOUT "valgrind @args\n";
    local $ENV{PERL_DESTRUCT_LEVEL} = 3;
    local $ENV{PERL_DL_NONLAZY} = 1;
-   exec $vg, @args;
+   exec { $args[0] } @args;
+   die "exec @args: $!";
   }
-  close $wtr or croak "close(\$wtr): $!";
   local $SIG{INT} = sub { kill -(SIGTERM) => $pid };
-  plan tests => 5 unless $args{no_test};
+  $Test->plan(tests => 5) unless $args{no_test} or defined $Test->has_plan;
   my @tests = (
    'errors',
    'definitely lost', 'indirectly lost', 'possibly lost', 'still reachable'
   );
   my %res = map { $_ => 0 } @tests;
-  while (<$rdr>) {
-   diag $_ if $args{diag};
+  close $owtr or die "close(\$owtr): $!";
+  close $vwtr or die "close(\$vwtr): $!";
+  while (<$vrdr>) {
+   $Test->diag($_) if $args{diag};
    if (/^=+\d+=+\s*FATAL\s*:\s*(.*)/) {
     chomp(my $err = $1);
-    diag "Valgrind error: $err";
+    $Test->diag("Valgrind error: $err");
     $res{$_} = undef for @tests;
    }
    if (/ERROR\s+SUMMARY\s*:\s+(\d+)/) {
@@ -206,6 +216,8 @@ sub import {
    }
   }
   waitpid $pid, 0;
+  $Test->diag(do { local $/; <$ordr> }) if $args{diag};
+  close $ordr or die "close(\$ordr): $!";
   my $failed = 5;
   my $cb = ($args{no_test} ? \&_counter
                            : ($args{cb} ? $args{cb} : \&_tester));
@@ -222,17 +234,17 @@ sub import {
 
 You can't use this module to test code given by the C<-e> command-line switch.
 
-Results will most likely be better if your perl is built with debugging enabled. Using the latest valgrind available will also help.
+Perl 5.8 is notorious for leaking like there's no tomorrow, so the suppressions are very likely not to be very accurate on it. Anyhow, results will most likely be better if your perl is built with debugging enabled. Using the latest valgrind available will also help.
 
 This module is not really secure. It's definitely not taint safe. That shouldn't be a problem for test files.
 
-If your tests output to STDERR, everything will be eaten in the process. In particular, running this module against test files will obliterate their original test results.
+What your tests output to STDOUT is eaten unless you pass the C<diag> option, in which case it will be reprinted as diagnostics. STDERR is kept untouched.
 
 =head1 DEPENDENCIES
 
 Valgrind 3.1.0 (L<http://valgrind.org>).
 
-L<Carp>, L<POSIX> (core modules since perl 5) and L<Test::More> (since 5.6.2).
+L<Carp>, L<Fcntl>, L<POSIX> (core modules since perl 5) and L<Test::Builder> (since 5.6.2).
 
 L<Perl::Destruct::Level>.
 
