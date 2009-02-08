@@ -18,11 +18,11 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
@@ -139,7 +139,8 @@ sub import {
   $callers = int $callers;
   my $vg = Test::Valgrind::Suppressions::VG_PATH;
   if (!$vg || !-x $vg) {
-   for (split /:/, $ENV{PATH}) {
+   require Config;
+   for (split /$Config::Config{path_sep}/, $ENV{PATH}) {
     $_ .= '/valgrind';
     if (-x) {
      $vg = $_;
@@ -230,6 +231,14 @@ sub import {
  }
 }
 
+END {
+ if ($run and eval { require DynaLoader; 1 }) {
+  my @rest;
+  DynaLoader::dl_unload_file($_) and push @rest, $_ for @DynaLoader::dl_librefs;
+  @DynaLoader::dl_librefs = @rest;
+ }
+}
+
 =head1 CAVEATS
 
 You can't use this module to test code given by the C<-e> command-line switch.
@@ -256,7 +265,7 @@ L<Devel::Leak>, L<Devel::LeakTrace>, L<Devel::LeakTrace::Fast>.
 
 Vincent Pit, C<< <perl at profvince.com> >>, L<http://www.profvince.com>.
 
-You can contact me by mail or on #perl @ FreeNode (vincent or Prof_Vince).
+You can contact me by mail or on C<irc.perl.org> (vincent).
 
 =head1 BUGS
 
@@ -276,7 +285,7 @@ H.Merijn Brand, for daring to test this thing.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Vincent Pit, all rights reserved.
+Copyright 2008-2009 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

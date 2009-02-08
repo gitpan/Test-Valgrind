@@ -14,7 +14,7 @@ BEGIN {
 
 my $vg;
 print 'Checking for valgrind >= 3.1.0 in PATH... ';
-for (split /:/, $ENV{PATH}) {
+for (split /$Config{path_sep}/, $ENV{PATH}) {
  $_ .= '/valgrind';
  if (-x) {
   my $ver = qx/$_ --version/;
@@ -58,22 +58,30 @@ if ($cc) {
  print "none\n";
 }
 
-my $BUILD_REQUIRES = {
- 'ExtUtils::MakeMaker' => 0,
- 'File::Copy'          => 0,
- 'Test::More'          => 0,
- 'XSLoader'            => 0
-};
+my $dist = 'Test-Valgrind';
 
-sub build_req {
- my $tometa = ' >> $(DISTVNAME)/META.yml;';
- my $build_req = 'echo "build_requires:" ' . $tometa;
- foreach my $mod ( sort { lc $a cmp lc $b } keys %$BUILD_REQUIRES ) {
-  my $ver = $BUILD_REQUIRES->{$mod};
-  $build_req .= sprintf 'echo "    %-30s %s" %s', "$mod:", $ver, $tometa;
- }
- return $build_req;
-}
+my %META = (
+ configure_requires => {
+  'Config'              => 0,
+  'ExtUtils::MakeMaker' => 0,
+  'File::Spec'          => 0,
+ },
+ build_requires => {
+  'ExtUtils::MakeMaker' => 0,
+  'File::Copy'          => 0,
+  'Test::More'          => 0,
+ },
+ recommends => {
+  'DynaLoader' => 0,
+  'XSLoader'   => 0,
+ },
+ resources => {
+  bugtracker => "http://rt.cpan.org/NoAuth/ReportBug.html?Queue=$dist",
+  homepage   => "http://search.cpan.org/dist/$dist/",
+  license    => 'http://dev.perl.org/licenses/',
+  repository => "http://git.profvince.com/perl/modules/$dist.git",
+ },
+);
 
 my $supp = 'lib/Test/Valgrind/Suppressions';
 open my $tpl, '<', $supp . '.tpl' or die "open($supp.tpl): $!";
@@ -88,24 +96,24 @@ close $tpl;
 $supp = 'Test/Valgrind/perlTestValgrind.supp';
 
 WriteMakefile(
-    NAME          => 'Test::Valgrind',
-    AUTHOR        => 'Vincent Pit <perl@profvince.com>',
-    LICENSE       => 'perl',
-    VERSION_FROM  => 'lib/Test/Valgrind.pm',
-    ABSTRACT_FROM => 'lib/Test/Valgrind.pm',
-    PL_FILES      => {
+    NAME             => 'Test::Valgrind',
+    AUTHOR           => 'Vincent Pit <perl@profvince.com>',
+    LICENSE          => 'perl',
+    VERSION_FROM     => 'lib/Test/Valgrind.pm',
+    ABSTRACT_FROM    => 'lib/Test/Valgrind.pm',
+    PL_FILES         => {
         './Gensupp.PL'    => 'blib/archpub/' . $supp,
         './FixInstall.PL' => 'Makefile.bak',
     },
-    OPTIMIZE      => '-g',
-    PM            => {
+    OPTIMIZE         => '-g',
+    PM               => {
         'lib/Test/Valgrind.pm'
         => '$(INST_LIB)/Test/Valgrind.pm',
         'lib/Test/Valgrind/Suppressions.pm'
         => 'blib/archpub/Test/Valgrind/Suppressions.pm',
     },
-    C             => \@C,
-    PREREQ_PM     => {
+    C                => \@C,
+    PREREQ_PM        => {
         'Carp'                  => 0,
         'Exporter'              => 0,
         'Fcntl'                 => 0,
@@ -113,27 +121,42 @@ WriteMakefile(
         'Perl::Destruct::Level' => 0,
         'Test::Builder'         => 0,
     },
-    dist          => {
-        PREOP      => "touch lib/$supp; "
-                      . 'pod2text lib/Test/Valgrind.pm > $(DISTVNAME)/README; '
-                      . build_req,
-        COMPRESS   => 'gzip -9f', SUFFIX => 'gz',
+    MIN_PERL_VERSION => 5.006,
+    META_MERGE       => \%META,
+    dist             => {
+        PREOP    => "touch lib/$supp; "
+                    . 'pod2text lib/Test/Valgrind.pm > $(DISTVNAME)/README',
+        COMPRESS => 'gzip -9f', SUFFIX => 'gz',
     },
-    clean         => { FILES => "Test-Valgrind-* lib/$supp Makefile.bak *.gcov *.gcda *.gcno cover_db Debian_CPANTS.txt" },
+    clean            => {
+        FILES => "$dist-* lib/$supp Makefile.bak *.gcov *.gcda *.gcno cover_db Debian_CPANTS.txt"
+    },
 );
 1 while unlink 'lib/' . $supp;
 
 package MY;
 
+sub dist_core {
+ my $dist = shift->SUPER::dist_core(@_);
+ $dist =~ s/^(\s*dist\s*:+\s*)/$1testvg_dist /m;
+ return <<DISTCORE . $dist;
+testvg_dist :
+	\$(CP) lib/Test/Valgrind/Suppressions.{tpl,pm}
+	\$(RM) lib/$supp
+	\$(TOUCH) lib/$supp
+DISTCORE
+}
+
 sub test {
  my $test = shift->SUPER::test(@_);
- return "test :: Makefile.bak blib/archpub/Test/Valgrind/perlTestValgrind.supp\n" . $test;
+ my ($target) = $test =~ /^\s*(test\s*:+)/m;
+ return "$target Makefile.bak blib/archpub/$supp\n$test";
 }
 
 sub postamble {
- <<'POSTAMBLE';
+ return <<POSTAMBLE;
 clean ::
-	$(CP) lib/Test/Valgrind/Suppressions.{tpl,pm}
-	$(TOUCH) lib/Test/Valgrind/perlTestValgrind.supp
+	\$(CP) lib/Test/Valgrind/Suppressions.{tpl,pm}
+	\$(TOUCH) lib/$supp
 POSTAMBLE
 }

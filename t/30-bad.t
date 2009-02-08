@@ -3,8 +3,6 @@
 use strict;
 use warnings;
 
-use Config qw/%Config/;
-
 use Test::More;
 
 my $dbg;
@@ -28,7 +26,7 @@ sub tester {
    $dbg = $@ ? 0 : $ret;
   }
  }
- if ($desc =~ /still\s+reachable/) {
+ if ($desc =~ /definitely\s+lost/) {
   $passed = $a >= 9900 && $a < 10100;
   if ($dbg) {
    ok($passed, $desc);
