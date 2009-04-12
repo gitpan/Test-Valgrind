@@ -1,27 +1,53 @@
 --- #YAML:1.0
 name:               Test-Valgrind
-version:            0.08
+version:            1.00
 abstract:           Test Perl code through valgrind.
 author:
     - Vincent Pit <perl@profvince.com>
 license:            perl
 distribution_type:  module
 configure_requires:
+    Carp:                 0
     Config:               0
     ExtUtils::MakeMaker:  0
+    Fcntl:                0
     File::Spec:           0
+    POSIX:                0
+    Scalar::Util:         0
+    version:              0
 build_requires:
+    Carp:                 0
+    Digest::MD5:          0
+    Env::Sanctify:        0
     ExtUtils::MakeMaker:  0
-    File::Copy:           0
+    Fcntl:                0
+    File::HomeDir:        0.86
+    File::Path:           0
+    File::Spec:           0
+    File::Temp:           0
+    Perl::Destruct::Level:  0
+    POSIX:                0
+    Scalar::Util:         0
+    Test::Builder:        0
     Test::More:           0
+    version:              0
+    XML::Twig:            0
 requires:
     Carp:                 0
-    Exporter:             0
+    Digest::MD5:          0
+    Env::Sanctify:        0
     Fcntl:                0
+    File::HomeDir:        0.86
+    File::Path:           0
+    File::Spec:           0
+    File::Temp:           0
     perl:                 5.006
     Perl::Destruct::Level:  0
     POSIX:                0
+    Scalar::Util:         0
     Test::Builder:        0
+    version:              0
+    XML::Twig:            0
 resources:
     bugtracker:  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind
     homepage:    http://search.cpan.org/dist/Test-Valgrind/
@@ -31,7 +57,7 @@ no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.48
+generated_by:       ExtUtils::MakeMaker version 6.50
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4

@@ -3,44 +3,41 @@ package Test::Valgrind;
 use strict;
 use warnings;
 
-use Carp qw/croak/;
-use POSIX qw/SIGTERM/;
-use Fcntl qw/F_SETFD/;
-use Test::Builder;
-
-use Perl::Destruct::Level level => 3;
-
-use Test::Valgrind::Suppressions;
-
 =head1 NAME
 
 Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 0.08
+Version 1.00
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '1.00';
 
 =head1 SYNOPSIS
 
+    # From the command-line
+    perl -MTest::Valgrind leaky.pl
+
+    # In a test file
     use Test::More;
     eval 'use Test::Valgrind';
     plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind' if $@;
+    ...
 
-    # Code to inspect for memory leaks/errors.
+    # In all the test files of a directory
+    prove --exec 'perl -Iblib/lib -Iblib/arch -MTest::Valgrind' t/*.t
 
 =head1 DESCRIPTION
 
-This module lets you run some code through the B<valgrind> memory debugger, to test it for memory errors and leaks. Just add C<use Test::Valgrind> at the beginning of the code you want to test. Behind the hood, C<Test::Valgrind::import> forks so that the child can basically C<exec 'valgrind', $^X, $0> (except that of course C<$0> isn't right there). The parent then parses the report output by valgrind and pass or fail tests accordingly.
+This module is a front-end to the C<Test::Valgrind::*> API that lets you run Perl code through the C<memcheck> tool of the C<valgrind> memory debugger, to test it for memory errors and leaks.
+If they aren't available yet, it will first generate suppressions for the current C<perl> interpreter and store them in the portable flavour of F<~/.perl/Test-Valgrind/suppressions/$VERSION>.
+The actual run will then take place, and tests will be passed or failed according to the result of the analysis.
 
-You can also use it from the command-line to test a given script :
-
-    perl -MTest::Valgrind leaky.pl
-
-Due to the nature of perl's memory allocator, this module can't track leaks of Perl objects. This includes non-mortalized scalars and memory cycles. However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>. As such, it's complementary to the other very good leak detectors listed in the L</SEE ALSO> section.
+Due to the nature of perl's memory allocator, this module can't track leaks of Perl objects.
+This includes non-mortalized scalars and memory cycles. However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>.
+As such, it's complementary to the other very good leak detectors listed in the L</SEE ALSO> section.
 
 =head1 CONFIGURATION
 
@@ -50,191 +47,168 @@ You can pass parameters to C<import> as a list of key / value pairs, where valid
 
 =item *
 
-C<< supp => $file >>
+C<< tool => $tool >>
 
-Also use suppressions from C<$file> besides perl's.
+The L<Test::Valgrind::Tool> object (or class name) to use.
 
-=item *
-
-C<< no_supp => $bool >>
-
-If true, do not use any suppressions.
+Defaults to L<Test::Valgrind::Tool::memcheck>.
 
 =item *
 
-C<< callers => $number >>
+C<< action => $action >>
 
-Specify the maximum stack depth studied when valgrind encounters an error. Raising this number improves granularity. Default is 12.
+The L<Test::Valgrind::Action> object (or class name) to use.
 
-=item *
-
-C<< extra => [ @args ] >>
-
-Add C<@args> to valgrind parameters.
+Defaults to L<Test::Valgrind::Action::Test>.
 
 =item *
 
 C<< diag => $bool >>
 
-If true, print the raw output of valgrind as diagnostics (may be quite verbose).
+If true, print the output of the test script as diagnostics.
 
 =item *
 
-C<< no_test => $bool >>
+C<< callers => $number >>
 
-If true, do not actually output the plan and the tests results.
+Specify the maximum stack depth studied when valgrind encounters an error.
+Raising this number improves granularity.
+
+Default is 12.
 
 =item *
 
-C<< cb => sub { my ($val, $name) = @_; ...; return $passed } >>
+C<< extra_supps => \@files >>
 
-Specifies a subroutine to execute for each test instead of C<Test::More::is>. It receives the number of bytes leaked in C<$_[0]> and the test name in C<$_[1]>, and is expected to return true if the test passed and false otherwise. Defaults to
+Also use suppressions from C<@files> besides C<perl>'s.
 
-    sub {
-     is($_[0], 0, $_[1]);
-     (defined $_[0] and $_[0] == 0) : 1 : 0
-    }
+=item *
+
+C<< no_def_supp => $bool >>
+
+If true, do not use the default suppression file.
 
 =back
 
 =cut
 
-my $Test = Test::Builder->new;
+# We use as little modules as possible in run mode so that they don't pollute
+# the analysis. Hence all the requires.
 
 my $run;
 
-sub _counter {
- (defined $_[0] and $_[0] == 0) ? 1 : 0;
-}
-
-sub _tester {
- $Test->is_num($_[0], 0, $_[1]);
- _counter(@_);
-}
-
 sub import {
  shift;
- croak 'Optional arguments must be passed as key => value pairs' if @_ % 2;
- my %args = @_;
- if (!defined $args{run} && !$run) {
-  my ($file, $pm, $next);
-  my $l = 0;
-  while ($l < 1000) {
-   $next = (caller $l++)[1];
-   last unless defined $next;
-   next unless $next ne '-e' and $next !~ /^\s*\(\s*eval\s*\d*\s*\)\s*$/
-                             and -f $next;
-   if ($next =~ /\.pm$/) {
-    $pm = $next;
-   } else {
-    $file = $next;
-   }
-  }
-  unless (defined $file) {
-   $file = $pm;
-   return unless defined $pm;
-  }
-  my $callers = $args{callers};
-  $callers = 12 unless defined $callers;
-  $callers = int $callers;
-  my $vg = Test::Valgrind::Suppressions::VG_PATH;
-  if (!$vg || !-x $vg) {
-   require Config;
-   for (split /$Config::Config{path_sep}/, $ENV{PATH}) {
-    $_ .= '/valgrind';
-    if (-x) {
-     $vg = $_;
-     last;
-    }
-   }
-   if (!$vg) {
-    $Test->skip_all('No valgrind executable could be found in your path');
-    return;
-   } 
-  }
-  pipe my $ordr, my $owtr or die "pipe(\$ordr, \$owtr): $!";
-  pipe my $vrdr, my $vwtr or die "pipe(\$vrdr, \$vwtr): $!";
-  my $pid = fork;
-  if (!defined $pid) {
-   die "fork(): $!";
-  } elsif ($pid == 0) {
-   setpgrp 0, 0 or die "setpgrp(0, 0): $!";
-   close $ordr or die "close(\$ordr): $!";
-   open STDOUT, '>&=', $owtr or die "open(STDOUT, '>&=', \$owtr): $!";
-   close $vrdr or die "close(\$vrdr): $!";
-   fcntl $vwtr, F_SETFD, 0 or die "fcntl(\$vwtr, F_SETFD, 0): $!";
-   my @args = (
-    $vg,
-    '--tool=memcheck',
-    '--leak-check=full',
-    '--leak-resolution=high',
-    '--num-callers=' . $callers,
-    '--error-limit=yes',
-    '--log-fd=' . fileno($vwtr)
-   );
-   unless ($args{no_supp}) {
-    for (Test::Valgrind::Suppressions::supp_path(), $args{supp}) {
-     push @args, '--suppressions=' . $_ if $_;
-    }
-   }
-   if (defined $args{extra} and ref $args{extra} eq 'ARRAY') {
-    push @args, @{$args{extra}};
-   }
-   push @args, $^X;
-   push @args, '-I' . $_ for @INC;
-   push @args, '-MTest::Valgrind=run,1', $file;
-   print STDOUT "valgrind @args\n";
-   local $ENV{PERL_DESTRUCT_LEVEL} = 3;
-   local $ENV{PERL_DL_NONLAZY} = 1;
-   exec { $args[0] } @args;
-   die "exec @args: $!";
-  }
-  local $SIG{INT} = sub { kill -(SIGTERM) => $pid };
-  $Test->plan(tests => 5) unless $args{no_test} or defined $Test->has_plan;
-  my @tests = (
-   'errors',
-   'definitely lost', 'indirectly lost', 'possibly lost', 'still reachable'
-  );
-  my %res = map { $_ => 0 } @tests;
-  close $owtr or die "close(\$owtr): $!";
-  close $vwtr or die "close(\$vwtr): $!";
-  while (<$vrdr>) {
-   $Test->diag($_) if $args{diag};
-   if (/^=+\d+=+\s*FATAL\s*:\s*(.*)/) {
-    chomp(my $err = $1);
-    $Test->diag("Valgrind error: $err");
-    $res{$_} = undef for @tests;
-   }
-   if (/ERROR\s+SUMMARY\s*:\s+(\d+)/) {
-    $res{errors} = int $1;
-   } elsif (/([a-z][a-z\s]*[a-z])\s*:\s*([\d.,]+)/) {
-    my ($cat, $count) = ($1, $2);
-    if (exists $res{$cat}) {
-     $cat =~ s/\s+/ /g;
-     $count =~ s/[.,]//g;
-     $res{$cat} = int $count;
-    }
-   }
-  }
-  waitpid $pid, 0;
-  $Test->diag(do { local $/; <$ordr> }) if $args{diag};
-  close $ordr or die "close(\$ordr): $!";
-  my $failed = 5;
-  my $cb = ($args{no_test} ? \&_counter
-                           : ($args{cb} ? $args{cb} : \&_tester));
-  for (@tests) {
-   $failed -= $cb->($res{$_}, 'valgrind ' . $_) ? 1 : 0;
-  }
-  exit $failed;
- } else {
-  $run = 1;
+
+ if (@_ % 2) {
+  require Carp;
+  Carp::croak('Optional arguments must be passed as key => value pairs');
  }
+ my %args = @_;
+
+ if (defined $args{run} or $run) {
+  require Perl::Destruct::Level;
+  Perl::Destruct::Level::set_destruct_level(3);
+  {
+   my $oldfh = select STDOUT;
+   $|++;
+   select $oldfh;
+  }
+  $run = 1;
+  return;
+ }
+
+ my ($file, $pm, $next);
+ my $l = 0;
+ while ($l < 1000) {
+  $next = (caller $l++)[1];
+  last unless defined $next;
+  next if $next eq '-e' or $next =~ /^\s*\(\s*eval\s*\d*\s*\)\s*$/ or !-f $next;
+  if ($next =~ /\.pm$/) {
+   $pm   = $next;
+  } else {
+   $file = $next;
+  }
+ }
+ unless (defined($file) or defined($file = $pm)) {
+  require Test::Builder;
+  Test::Builder->new->diag('Couldn\'t find a valid source file');
+  return;
+ }
+
+ my $taint_mode;
+ {
+  open my $fh, '<', $file or last;
+  my $first = <$fh>;
+  close $fh;
+  if ($first and my ($args) = $first =~ /^\s*#\s*!\s*perl\s*(.*)/) {
+   $taint_mode = 1 if $args =~ /(?:^|\s)-T(?:$|\s)/;
+  }
+ }
+
+ require Test::Valgrind::Command;
+ my $cmd = Test::Valgrind::Command->new(
+  command => 'Perl',
+  args    => [ '-MTest::Valgrind=run,1', (('-T') x!! $taint_mode), $file ],
+ );
+
+ my $instanceof = sub {
+  require Scalar::Util;
+  Scalar::Util::blessed($_[0]) && $_[0]->isa($_[1]);
+ };
+
+ my $tool = delete $args{tool};
+ unless ($tool->$instanceof('Test::Valgrind::Tool')) {
+  require Test::Valgrind::Tool;
+  $tool = Test::Valgrind::Tool->new(
+   tool     => $tool || 'memcheck',
+   callers  => delete($args{callers}),
+  );
+ }
+
+ my $action = delete $args{action};
+ unless ($action->$instanceof('Test::Valgrind::Action')) {
+  require Test::Valgrind::Action;
+  $action = Test::Valgrind::Action->new(
+   action => $action || 'Test',
+   diag   => delete($args{diag}),
+  );
+ }
+
+ require Test::Valgrind::Session;
+ my $sess = eval {
+  Test::Valgrind::Session->new(
+   min_version => $tool->requires_version,
+   map { $_ => delete $args{$_} } qw/extra_supps no_def_supp/
+  );
+ };
+ unless ($sess) {
+  $action->abort($sess, $@);
+  exit $action->status($sess);
+ }
+
+ eval {
+  $sess->run(
+   command => $cmd,
+   tool    => $tool,
+   action  => $action,
+  );
+ };
+ if ($@) {
+  require Test::Valgrind::Report;
+  $action->report($sess, Test::Valgrind::Report->new_diag($@));
+ }
+
+ my $status = $sess->status;
+ $status = 255 unless defined $status;
+
+ exit $status;
 }
 
 END {
  if ($run and eval { require DynaLoader; 1 }) {
   my @rest;
-  DynaLoader::dl_unload_file($_) and push @rest, $_ for @DynaLoader::dl_librefs;
+  DynaLoader::dl_unload_file($_) or push @rest, $_ for @DynaLoader::dl_librefs;
   @DynaLoader::dl_librefs = @rest;
  }
 }
@@ -243,21 +217,23 @@ END {
 
 You can't use this module to test code given by the C<-e> command-line switch.
 
-Perl 5.8 is notorious for leaking like there's no tomorrow, so the suppressions are very likely not to be very accurate on it. Anyhow, results will most likely be better if your perl is built with debugging enabled. Using the latest valgrind available will also help.
+Perl 5.8 is notorious for leaking like there's no tomorrow, so the suppressions are very likely not to be very accurate on it. Anyhow, results will most likely be better if your perl is built with debugging enabled. Using the latest C<valgrind> available will also help.
 
 This module is not really secure. It's definitely not taint safe. That shouldn't be a problem for test files.
 
-What your tests output to STDOUT is eaten unless you pass the C<diag> option, in which case it will be reprinted as diagnostics. STDERR is kept untouched.
+What your tests output to C<STDOUT> and C<STDERR> is eaten unless you pass the C<diag> option, in which case it will be reprinted as diagnostics.
 
 =head1 DEPENDENCIES
 
 Valgrind 3.1.0 (L<http://valgrind.org>).
 
-L<Carp>, L<Fcntl>, L<POSIX> (core modules since perl 5) and L<Test::Builder> (since 5.6.2).
-
-L<Perl::Destruct::Level>.
+L<XML::Twig>, L<version>, L<File::HomeDir>, L<Env::Sanctify>, L<Perl::Destruct::Level>.
 
 =head1 SEE ALSO
+
+All the C<Test::Valgrind::*> API, including L<Test::Valgrind::Command>, L<Test::Valgrind::Tool>, L<Test::Valgrind::Action> and L<Test::Valgrind::Session>.
+
+L<Test::LeakTrace>.
 
 L<Devel::Leak>, L<Devel::LeakTrace>, L<Devel::LeakTrace::Fast>.
 
@@ -269,7 +245,8 @@ You can contact me by mail or on C<irc.perl.org> (vincent).
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-test-valgrind at rt.cpan.org>, or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind>.  I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-test-valgrind at rt.cpan.org>, or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind>.
+I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
 
@@ -282,6 +259,8 @@ You can find documentation for this module with the perldoc command.
 Rafaël Garcia-Suarez, for writing and instructing me about the existence of L<Perl::Destruct::Level> (Elizabeth Mattijsen is a close second).
 
 H.Merijn Brand, for daring to test this thing.
+
+All you people that showed interest in this module, which motivated me into completely rewriting it.
 
 =head1 COPYRIGHT & LICENSE
 

@@ -1,5 +1,16 @@
 Revision history for Test-Valgrind
 
+1.00    2009-04-12 22:50 UTC
+        Complete rewrite. The options passed to Test::Valgrind->import have
+        changed, so please have a look at the doc.
+        + Add : A brand new reusable API.
+        + Add : Suppressions are now versionized following the perl interpreter
+                and valgrind. They are regenerated as needed and stored in the
+                user home directory.
+        + Add : memcheck output is parsed by XML::Twig.
+        + Add : The output of the original script is now correctly captured.
+        + Rem : Lots of ugly hacks in the toolchain.
+
 0.08    2009-02-08 18:25 UTC
         + Add : Unload the libraries loaded by DynaLoader at END time, reducing
                 the number of leaks in perl.

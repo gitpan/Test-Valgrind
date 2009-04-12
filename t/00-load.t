@@ -5,7 +5,6 @@ use warnings;
 
 use Test::More tests => 1;
 
-use lib qw{blib/archpub};
 BEGIN {
 	use_ok( 'Test::Valgrind::Suppressions' );
 }

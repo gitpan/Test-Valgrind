@@ -16,7 +16,7 @@
 # define DEBUGGING 0
 #endif
 
-const char *tvtxs_leaky = NULL;
+const char *tv_leaky = NULL;
 
 /* --- XS ------------------------------------------------------------------ */
 
@@ -33,14 +33,14 @@ BOOT:
 void
 leak()
 CODE:
- Newx(tvtxs_leaky, 10000, char);
+ tv_leaky = malloc(10000);
  XSRETURN_UNDEF;
 
 SV *
 notleak(SV *sv)
 CODE:
- Newx(tvtxs_leaky, 10000, char);
- Safefree(tvtxs_leaky);
+ Newx(tv_leaky, 10000, char);
+ Safefree(tv_leaky);
  RETVAL = newSVsv(sv);
 OUTPUT:
  RETVAL

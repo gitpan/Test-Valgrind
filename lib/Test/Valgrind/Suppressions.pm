@@ -5,67 +5,92 @@ use warnings;
 
 =head1 NAME
 
-Test::Valgrind::Suppressions - Placeholder for architecture-dependant perl suppressions.
+Test::Valgrind::Suppressions - Generate suppressions for given tool and command.
 
 =head1 VERSION
 
-Version 0.08
+Version 1.00
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '1.00';
 
 =head1 DESCRIPTION
 
-L<Test::Valgrind> needs suppressions so that perl's errors aren't reported. However, these suppressions depend widely on the architecture, perl's version and the features it has been build with (e.g. threads). The goal of this module is hence to be installed together with the suppression file generated when the Test-Valgrind distribution was built, and to handle back to L<Test::Valgrind> the path to the suppression file.
-
-=head1 FUNCTIONS
-
-=head2 C<supp_path>
-
-Returns the path to the suppression file that applies to the current running perl, or C<undef> when no such file is available.
+This module is an helper for generating suppressions.
 
 =cut
 
-sub supp_path {
- my $pkg = __PACKAGE__;
- $pkg =~ s!::!/!g;
- $pkg .= '.pm';
- return if not $INC{$pkg};
- my $supp = $INC{$pkg};
- $supp =~ s![^/]*$!perlTestValgrind.supp!;
- return (-f $supp) ? $supp : undef;
+use base qw/Test::Valgrind::Carp/;
+
+=head1 METHODS
+
+=head2 C<< generate tool => $tool, command => $command, target => $target >>
+
+Generates suppressions for the command C<< $command->new_trainer >> and the tool C<< $tool->new_trainer >>, and writes them in the file specified by C<$target>.
+The action used behind the scenes is L<Test::Valgrind::Action::Suppressions>.
+
+Returns the status code.
+
+=cut
+
+sub generate {
+ my $self = shift;
+
+ my %args = @_;
+
+ my $cmd = delete $args{command};
+ unless (ref $cmd) {
+  require Test::Valgrind::Command;
+  $cmd = Test::Valgrind::Command->new(
+   command => $cmd,
+   args    => [ ],
+  );
+ }
+ $cmd = $cmd->new_trainer;
+ return unless defined $cmd;
+
+ my $tool = delete $args{tool};
+ unless (ref $tool) {
+  require Test::Valgrind::Tool;
+  $tool = Test::Valgrind::Tool->new(tool => $tool);
+ }
+ $tool = $tool->new_trainer;
+ return unless defined $tool;
+
+ my $target = delete $args{target};
+ $self->_croak('Invalid target') unless $target and not ref $target;
+
+ require Test::Valgrind::Action;
+ my $action = Test::Valgrind::Action->new(
+  action => 'Suppressions',
+  target => $target,
+  name   => 'PerlSuppression',
+ );
+
+ require Test::Valgrind::Session;
+ my $sess = Test::Valgrind::Session->new(
+  min_version => $tool->requires_version,
+ );
+
+ eval {
+  $sess->run(
+   command => $cmd,
+   tool    => $tool,
+   action  => $action,
+  );
+ };
+ $self->_croak($@) if $@;
+
+ my $status = $sess->status;
+ $status = 255 unless defined $status;
+
+ return $status;
 }
-
-=head1 CONSTANTS
-
-=head2 C<VG_PATH>
-
-The path to the valgrind binary from which the suppressions were generated.
-
-=cut
-
-use constant VG_PATH => undef;
-
-=head1 EXPORT
-
-This module exports the L</supp_path> function and the L</VG_PATH> constants only on demand, either by giving their name explicitely or by the C<:funcs>, C<:consts> or C<:all> tags.
-
-=cut
-
-use base qw/Exporter/;
-
-our @EXPORT         = ();
-our %EXPORT_TAGS    = (
- 'funcs'  => [ qw/supp_path/ ],
- 'consts' => [ qw/VG_PATH/ ]
-);
-our @EXPORT_OK      = map { @$_ } values %EXPORT_TAGS;
-$EXPORT_TAGS{'all'} = [ @EXPORT_OK ];
 
 =head1 SEE ALSO
 
-L<Test::Valgrind>.
+L<Test::Valgrind>, L<Test::Valgrind::Command>, L<Test::Valgrind::Tool>, L<Test::Valgrind::Action::Suppressions>.
 
 =head1 AUTHOR
 
@@ -75,7 +100,8 @@ You can contact me by mail or on C<irc.perl.org> (vincent).
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-test-valgrind-suppressions at rt.cpan.org>, or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind>.  I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-test-valgrind-suppressions at rt.cpan.org>, or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind>.
+I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
 
 =head1 SUPPORT
 

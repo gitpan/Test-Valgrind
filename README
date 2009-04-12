@@ -2,27 +2,30 @@ NAME
     Test::Valgrind - Test Perl code through valgrind.
 
 VERSION
-    Version 0.08
+    Version 1.00
 
 SYNOPSIS
+        # From the command-line
+        perl -MTest::Valgrind leaky.pl
+
+        # In a test file
         use Test::More;
         eval 'use Test::Valgrind';
         plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind' if $@;
+        ...
 
-        # Code to inspect for memory leaks/errors.
+        # In all the test files of a directory
+        prove --exec 'perl -Iblib/lib -Iblib/arch -MTest::Valgrind' t/*.t
 
 DESCRIPTION
-    This module lets you run some code through the valgrind memory debugger,
-    to test it for memory errors and leaks. Just add "use Test::Valgrind" at
-    the beginning of the code you want to test. Behind the hood,
-    "Test::Valgrind::import" forks so that the child can basically "exec
-    'valgrind', $^X, $0" (except that of course $0 isn't right there). The
-    parent then parses the report output by valgrind and pass or fail tests
-    accordingly.
-
-    You can also use it from the command-line to test a given script :
-
-        perl -MTest::Valgrind leaky.pl
+    This module is a front-end to the "Test::Valgrind::*" API that lets you
+    run Perl code through the "memcheck" tool of the "valgrind" memory
+    debugger, to test it for memory errors and leaks. If they aren't
+    available yet, it will first generate suppressions for the current
+    "perl" interpreter and store them in the portable flavour of
+    ~/.perl/Test-Valgrind/suppressions/$VERSION. The actual run will then
+    take place, and tests will be passed or failed according to the result
+    of the analysis.
 
     Due to the nature of perl's memory allocator, this module can't track
     leaks of Perl objects. This includes non-mortalized scalars and memory
@@ -35,43 +38,36 @@ CONFIGURATION
     You can pass parameters to "import" as a list of key / value pairs,
     where valid keys are :
 
-    *   "supp => $file"
+    *   "tool => $tool"
 
-        Also use suppressions from $file besides perl's.
+        The Test::Valgrind::Tool object (or class name) to use.
 
-    *   "no_supp => $bool"
+        Defaults to Test::Valgrind::Tool::memcheck.
 
-        If true, do not use any suppressions.
+    *   "action => $action"
+
+        The Test::Valgrind::Action object (or class name) to use.
+
+        Defaults to Test::Valgrind::Action::Test.
+
+    *   "diag => $bool"
+
+        If true, print the output of the test script as diagnostics.
 
     *   "callers => $number"
 
         Specify the maximum stack depth studied when valgrind encounters an
-        error. Raising this number improves granularity. Default is 12.
+        error. Raising this number improves granularity.
 
-    *   "extra => [ @args ]"
+        Default is 12.
 
-        Add @args to valgrind parameters.
+    *   "extra_supps => \@files"
 
-    *   "diag => $bool"
+        Also use suppressions from @files besides "perl"'s.
 
-        If true, print the raw output of valgrind as diagnostics (may be
-        quite verbose).
+    *   "no_def_supp => $bool"
 
-    *   "no_test => $bool"
-
-        If true, do not actually output the plan and the tests results.
-
-    *   "cb => sub { my ($val, $name) = @_; ...; return $passed }"
-
-        Specifies a subroutine to execute for each test instead of
-        "Test::More::is". It receives the number of bytes leaked in $_[0]
-        and the test name in $_[1], and is expected to return true if the
-        test passed and false otherwise. Defaults to
-
-            sub {
-             is($_[0], 0, $_[1]);
-             (defined $_[0] and $_[0] == 0) : 1 : 0
-            }
+        If true, do not use the default suppression file.
 
 CAVEATS
     You can't use this module to test code given by the "-e" command-line
@@ -80,24 +76,26 @@ CAVEATS
     Perl 5.8 is notorious for leaking like there's no tomorrow, so the
     suppressions are very likely not to be very accurate on it. Anyhow,
     results will most likely be better if your perl is built with debugging
-    enabled. Using the latest valgrind available will also help.
+    enabled. Using the latest "valgrind" available will also help.
 
     This module is not really secure. It's definitely not taint safe. That
     shouldn't be a problem for test files.
 
-    What your tests output to STDOUT is eaten unless you pass the "diag"
-    option, in which case it will be reprinted as diagnostics. STDERR is
-    kept untouched.
+    What your tests output to "STDOUT" and "STDERR" is eaten unless you pass
+    the "diag" option, in which case it will be reprinted as diagnostics.
 
 DEPENDENCIES
     Valgrind 3.1.0 (<http://valgrind.org>).
 
-    Carp, Fcntl, POSIX (core modules since perl 5) and Test::Builder (since
-    5.6.2).
-
-    Perl::Destruct::Level.
+    XML::Twig, version, File::HomeDir, Env::Sanctify, Perl::Destruct::Level.
 
 SEE ALSO
+    All the "Test::Valgrind::*" API, including Test::Valgrind::Command,
+    Test::Valgrind::Tool, Test::Valgrind::Action and
+    Test::Valgrind::Session.
+
+    Test::LeakTrace.
+
     Devel::Leak, Devel::LeakTrace, Devel::LeakTrace::Fast.
 
 AUTHOR
@@ -123,6 +121,9 @@ ACKNOWLEDGEMENTS
     second).
 
     H.Merijn Brand, for daring to test this thing.
+
+    All you people that showed interest in this module, which motivated me
+    into completely rewriting it.
 
 COPYRIGHT & LICENSE
     Copyright 2008-2009 Vincent Pit, all rights reserved.

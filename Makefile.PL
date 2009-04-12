@@ -4,31 +4,26 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+my $has_version_pm;
 BEGIN {
  eval { require Config };
  die 'OS unsupported' if $@;
  Config->import(qw/%Config/);
  eval { require File::Spec };
  die 'OS unsupported' if $@;
+ $has_version_pm = eval "require version; 1" || 0;
 }
+use lib 'lib';
 
-my $vg;
-print 'Checking for valgrind >= 3.1.0 in PATH... ';
-for (split /$Config{path_sep}/, $ENV{PATH}) {
- $_ .= '/valgrind';
- if (-x) {
-  my $ver = qx/$_ --version/;
-  if ($ver =~ s/^valgrind-//) {
-   $ver = join '', map chr, split /\./, $ver;
-   if ($ver ge v3.1.0) {
-    print "$_\n";
-    $vg = $_;
-    last;
-   }
-  }
- }
-}
-if (!$vg) {
+print 'Checking for valgrind ' . ('>= 3.1.0 ' x $has_version_pm) .'in PATH... ';
+require Test::Valgrind::Session;
+my $vg = eval q[
+ Test::Valgrind::Session->new((min_version => '3.1.0') x $has_version_pm)
+                        ->valgrind
+];
+if ($vg) {
+ print "$vg\n";
+} else {
  print "no\n";
  die 'OS unsupported';
 }
@@ -37,39 +32,65 @@ if (!$vg) {
 print "Checking for a valid C compiler in the PATH... ";
 my @ccs = ($Config{cc});
 unshift @ccs, $ENV{CC} if $ENV{CC};
-my $cc;
+my @path = File::Spec->path;
+@ccs = map {
+ my $cc = $_;
+ File::Spec->file_name_is_absolute($cc)
+   ? $cc
+   : map File::Spec->catfile($_, $cc), @path
+} @ccs;
+my $has_cc;
 CC:
-for my $c (@ccs) {
- for my $dir (split /$Config{path_sep}/, $ENV{PATH}) {
-  my $abs = File::Spec->catfile($dir, $c);
-  if (-x $abs or MM->maybe_command($abs)) {
-   $cc = $c;
-   last CC;
-  }
+for my $cc (@ccs) {
+ if (-x $cc or MM->maybe_command($cc)) {
+  $has_cc = $cc;
+  last CC;
  }
 }
 my (@C);
-if ($cc) {
+if ($has_cc) {
  my $xs = 'Valgrind.xs';
  (my $c = $xs) =~ s/\.xs$/.c/;
  push @C, $c;
- print $cc, "\n";
+ print $has_cc, "\n";
 } else {
  print "none\n";
 }
+
+my %PREREQ_PM = (
+ 'Carp'                  => 0,
+ 'Digest::MD5'           => 0,
+ 'Env::Sanctify'         => 0,
+ 'File::HomeDir'         => '0.86',
+ 'File::Path'            => 0,
+ 'File::Spec'            => 0,
+ 'File::Temp'            => 0,
+ 'Fcntl'                 => 0,
+ 'POSIX'                 => 0,
+ 'Perl::Destruct::Level' => 0,
+ 'Scalar::Util'          => 0,
+ 'Test::Builder'         => 0,
+ 'XML::Twig'             => 0,
+ 'version'               => 0,
+);
 
 my $dist = 'Test-Valgrind';
 
 my %META = (
  configure_requires => {
+  'Carp'                => 0,
   'Config'              => 0,
   'ExtUtils::MakeMaker' => 0,
+  'Fcntl'               => 0,
   'File::Spec'          => 0,
+  'POSIX'               => 0,
+  'Scalar::Util'        => 0,
+  'version'             => 0,
  },
  build_requires => {
   'ExtUtils::MakeMaker' => 0,
-  'File::Copy'          => 0,
   'Test::More'          => 0,
+  %PREREQ_PM,
  },
  recommends => {
   'DynaLoader' => 0,
@@ -83,80 +104,22 @@ my %META = (
  },
 );
 
-my $supp = 'lib/Test/Valgrind/Suppressions';
-open my $tpl, '<', $supp . '.tpl' or die "open($supp.tpl): $!";
-open my $out, '>', $supp . '.pm'  or die "open($supp.pm): $!";
-while (<$tpl>) {
- s/(VG_PATH\s*=>\s*)undef/$1'$vg'/g;
- print $out $_;
-}
-close $out;
-close $tpl;
-
-$supp = 'Test/Valgrind/perlTestValgrind.supp';
-
 WriteMakefile(
     NAME             => 'Test::Valgrind',
     AUTHOR           => 'Vincent Pit <perl@profvince.com>',
     LICENSE          => 'perl',
     VERSION_FROM     => 'lib/Test/Valgrind.pm',
     ABSTRACT_FROM    => 'lib/Test/Valgrind.pm',
-    PL_FILES         => {
-        './Gensupp.PL'    => 'blib/archpub/' . $supp,
-        './FixInstall.PL' => 'Makefile.bak',
-    },
     OPTIMIZE         => '-g',
-    PM               => {
-        'lib/Test/Valgrind.pm'
-        => '$(INST_LIB)/Test/Valgrind.pm',
-        'lib/Test/Valgrind/Suppressions.pm'
-        => 'blib/archpub/Test/Valgrind/Suppressions.pm',
-    },
     C                => \@C,
-    PREREQ_PM        => {
-        'Carp'                  => 0,
-        'Exporter'              => 0,
-        'Fcntl'                 => 0,
-        'POSIX'                 => 0,
-        'Perl::Destruct::Level' => 0,
-        'Test::Builder'         => 0,
-    },
+    PREREQ_PM        => \%PREREQ_PM,
     MIN_PERL_VERSION => 5.006,
     META_MERGE       => \%META,
     dist             => {
-        PREOP    => "touch lib/$supp; "
-                    . 'pod2text lib/Test/Valgrind.pm > $(DISTVNAME)/README',
+        PREOP    => 'pod2text lib/Test/Valgrind.pm > $(DISTVNAME)/README',
         COMPRESS => 'gzip -9f', SUFFIX => 'gz',
     },
     clean            => {
-        FILES => "$dist-* lib/$supp Makefile.bak *.gcov *.gcda *.gcno cover_db Debian_CPANTS.txt"
+        FILES => "$dist-* Makefile.bak *.gcov *.gcda *.gcno cover_db Debian_CPANTS.txt"
     },
 );
-1 while unlink 'lib/' . $supp;
-
-package MY;
-
-sub dist_core {
- my $dist = shift->SUPER::dist_core(@_);
- $dist =~ s/^(\s*dist\s*:+\s*)/$1testvg_dist /m;
- return <<DISTCORE . $dist;
-testvg_dist :
-	\$(CP) lib/Test/Valgrind/Suppressions.{tpl,pm}
-	\$(RM) lib/$supp
-	\$(TOUCH) lib/$supp
-DISTCORE
-}
-
-sub test {
- my $test = shift->SUPER::test(@_);
- my ($target) = $test =~ /^\s*(test\s*:+)/m;
- return "$target Makefile.bak blib/archpub/$supp\n$test";
-}
-
-sub postamble {
- return <<POSTAMBLE;
-clean ::
-	\$(CP) lib/Test/Valgrind/Suppressions.{tpl,pm}
-	\$(TOUCH) lib/$supp
-POSTAMBLE
-}
