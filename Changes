@@ -1,5 +1,12 @@
 Revision history for Test-Valgrind
 
+1.01    2009-04-14 21:15 UTC
+        + Add : Allow testing code given by -e. Hurray for source filters!
+        + Fix : Lazily load version.pm in Test::Valgrind::Session so that it's
+                not really needed at configure time.
+        + Fix : Don't unload dynamic extensions by default so that their symbols
+                still appear in the stack traces.
+
 1.00    2009-04-12 22:50 UTC
         Complete rewrite. The options passed to Test::Valgrind->import have
         changed, so please have a look at the doc.

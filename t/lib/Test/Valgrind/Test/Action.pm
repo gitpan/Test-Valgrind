@@ -29,14 +29,15 @@ sub report_smart {
  my ($self, $sess, $report) = @_;
 
  if ($report->can('is_leak') and $report->is_leak) {
-  my $tb = Test::Builder->new;
-  my $data = $report->data;
-  $tb->is_eq($data->{leakedbytes},  10_000, '10_000 bytes leaked');
-  $tb->is_eq($data->{leakedblocks}, 1,      '  in one block');
-  $tb->diag("The subsequent report was correctly caught:\n" . $report->dump)
-                                      if  ($data->{leakedbytes}  || 0) == 10_000
-                                      and ($data->{leakedblocks} || 0) == 1;
-  return;
+  my $trace = join ' ', map { $_->[2] } @{$report->data->{stack} || []}[0 .. 2];
+  if ($trace eq 'malloc XS_Test__Valgrind_leak Perl_pp_entersub') {
+   my $tb = Test::Builder->new;
+   $tb->diag("The subsequent report was correctly caught:\n" . $report->dump);
+   my $data = $report->data;
+   $tb->is_eq($data->{leakedbytes},  10_000, '10_000 bytes leaked');
+   $tb->is_eq($data->{leakedblocks}, 1,      '  in one block');
+   return;
+  }
  }
 
  $self->SUPER::report($sess, $report);

@@ -1,12 +1,13 @@
 --- #YAML:1.0
 name:               Test-Valgrind
-version:            1.00
+version:            1.01
 abstract:           Test Perl code through valgrind.
 author:
     - Vincent Pit <perl@profvince.com>
 license:            perl
 distribution_type:  module
 configure_requires:
+    base:                 0
     Carp:                 0
     Config:               0
     ExtUtils::MakeMaker:  0
@@ -16,6 +17,7 @@ configure_requires:
     Scalar::Util:         0
     version:              0
 build_requires:
+    base:                 0
     Carp:                 0
     Digest::MD5:          0
     Env::Sanctify:        0
@@ -24,7 +26,8 @@ build_requires:
     File::HomeDir:        0.86
     File::Path:           0
     File::Spec:           0
-    File::Temp:           0
+    File::Temp:           0.14
+    Filter::Util::Call:   0
     Perl::Destruct::Level:  0
     POSIX:                0
     Scalar::Util:         0
@@ -33,6 +36,7 @@ build_requires:
     version:              0
     XML::Twig:            0
 requires:
+    base:                 0
     Carp:                 0
     Digest::MD5:          0
     Env::Sanctify:        0
@@ -40,7 +44,8 @@ requires:
     File::HomeDir:        0.86
     File::Path:           0
     File::Spec:           0
-    File::Temp:           0
+    File::Temp:           0.14
+    Filter::Util::Call:   0
     perl:                 5.006
     Perl::Destruct::Level:  0
     POSIX:                0

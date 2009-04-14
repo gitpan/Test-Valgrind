@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.00
+Version 1.01
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 =head1 DESCRIPTION
 
@@ -30,8 +30,6 @@ BEGIN {
 
  require Fcntl; # F_SETFD
  require POSIX; # SIGKILL
-
- require version;
 }
 
 use base qw/Test::Valgrind::Carp/;
@@ -82,6 +80,11 @@ Defaults to none.
 
 =cut
 
+my $build_version = sub {
+ require version;
+ version->new($_[0]);
+};
+
 sub new {
  my $class = shift;
  $class = ref($class) || $class;
@@ -102,15 +105,19 @@ sub new {
  $class->_croak('Empty valgrind candidates list') unless @paths;
 
  my $min_version = delete $args{min_version};
- defined and not ref and $_ = version->new($_) for $min_version;
+ defined and not ref and $_ = $build_version->($_) for $min_version;
 
  my ($valgrind, $version);
  for (@paths) {
   next unless -x;
   my $ver = qx/$_ --version/;
   if ($ver =~ /^valgrind-(\d+(\.\d+)*)/) {
-   $version = version->new($1);
-   next if $min_version and $version < $min_version;
+   if ($min_version) {
+    $version = $build_version->($1);
+    next if $version < $min_version;
+   } else {
+    $version = $1;
+   }
    $valgrind = $_;
    last;
   }
@@ -138,13 +145,24 @@ The path to the selected C<valgrind> executable.
 
 The L<version> object associated to the selected C<valgrind>.
 
+=cut
+
+sub version {
+ my ($self) = @_;
+
+ my $version = $self->{version};
+ $self->{version} = $version = $build_version->($version) unless ref $version;
+
+ return $version;
+}
+
 =head2 C<no_def_supp>
 
 Read-only accessor for the C<no_def_supp> option.
 
 =cut
 
-eval "sub $_ { \$_[0]->{$_} }" for qw/valgrind version no_def_supp/;
+eval "sub $_ { \$_[0]->{$_} }" for qw/valgrind no_def_supp/;
 
 =head2 C<extra_supps>
 

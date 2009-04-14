@@ -9,22 +9,25 @@ Test::Valgrind - Test Perl code through valgrind.
 
 =head1 VERSION
 
-Version 1.00
+Version 1.01
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 =head1 SYNOPSIS
 
     # From the command-line
     perl -MTest::Valgrind leaky.pl
 
+    # From the command-line, snippet style
+    perl -MTest::Valgrind -e 'leaky()'
+
     # In a test file
     use Test::More;
     eval 'use Test::Valgrind';
     plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind' if $@;
-    ...
+    leaky();
 
     # In all the test files of a directory
     prove --exec 'perl -Iblib/lib -Iblib/arch -MTest::Valgrind' t/*.t
@@ -39,11 +42,21 @@ Due to the nature of perl's memory allocator, this module can't track leaks of P
 This includes non-mortalized scalars and memory cycles. However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>.
 As such, it's complementary to the other very good leak detectors listed in the L</SEE ALSO> section.
 
-=head1 CONFIGURATION
+=head1 METHODS
 
-You can pass parameters to C<import> as a list of key / value pairs, where valid keys are :
+=head2 C<analyse [ %options ]>
+
+Run a C<valgrind> analysis configured by C<%options> :
 
 =over 4
+
+=item *
+
+C<< command => $command >>
+
+The L<Test::Valgrind::Command> object (or class name) to use.
+
+Defaults to L<Test::Valgrind::Command::PerlScript>.
 
 =item *
 
@@ -63,9 +76,11 @@ Defaults to L<Test::Valgrind::Action::Test>.
 
 =item *
 
-C<< diag => $bool >>
+C<< file => $file >>
 
-If true, print the output of the test script as diagnostics.
+The file name of the script to analyse.
+
+Ignored if you supply your own custom C<command>, but mandatory otherwise.
 
 =item *
 
@@ -74,7 +89,15 @@ C<< callers => $number >>
 Specify the maximum stack depth studied when valgrind encounters an error.
 Raising this number improves granularity.
 
-Default is 12.
+Ignored if you supply your own custom C<tool>, otherwise defaults to C<12>.
+
+=item *
+
+C<< diag => $bool >>
+
+If true, print the output of the test script as diagnostics.
+
+Ignored if you supply your own custom C<action>, otherwise defaults to false.
 
 =item *
 
@@ -82,87 +105,46 @@ C<< extra_supps => \@files >>
 
 Also use suppressions from C<@files> besides C<perl>'s.
 
+Defaults to empty.
+
 =item *
 
 C<< no_def_supp => $bool >>
 
 If true, do not use the default suppression file.
 
+Defaults to false.
+
 =back
 
 =cut
 
-# We use as little modules as possible in run mode so that they don't pollute
-# the analysis. Hence all the requires.
-
-my $run;
-
-sub import {
+sub analyse {
  shift;
 
- if (@_ % 2) {
-  require Carp;
-  Carp::croak('Optional arguments must be passed as key => value pairs');
- }
  my %args = @_;
-
- if (defined $args{run} or $run) {
-  require Perl::Destruct::Level;
-  Perl::Destruct::Level::set_destruct_level(3);
-  {
-   my $oldfh = select STDOUT;
-   $|++;
-   select $oldfh;
-  }
-  $run = 1;
-  return;
- }
-
- my ($file, $pm, $next);
- my $l = 0;
- while ($l < 1000) {
-  $next = (caller $l++)[1];
-  last unless defined $next;
-  next if $next eq '-e' or $next =~ /^\s*\(\s*eval\s*\d*\s*\)\s*$/ or !-f $next;
-  if ($next =~ /\.pm$/) {
-   $pm   = $next;
-  } else {
-   $file = $next;
-  }
- }
- unless (defined($file) or defined($file = $pm)) {
-  require Test::Builder;
-  Test::Builder->new->diag('Couldn\'t find a valid source file');
-  return;
- }
-
- my $taint_mode;
- {
-  open my $fh, '<', $file or last;
-  my $first = <$fh>;
-  close $fh;
-  if ($first and my ($args) = $first =~ /^\s*#\s*!\s*perl\s*(.*)/) {
-   $taint_mode = 1 if $args =~ /(?:^|\s)-T(?:$|\s)/;
-  }
- }
-
- require Test::Valgrind::Command;
- my $cmd = Test::Valgrind::Command->new(
-  command => 'Perl',
-  args    => [ '-MTest::Valgrind=run,1', (('-T') x!! $taint_mode), $file ],
- );
 
  my $instanceof = sub {
   require Scalar::Util;
   Scalar::Util::blessed($_[0]) && $_[0]->isa($_[1]);
  };
 
+ my $cmd = delete $args{command};
+ unless ($cmd->$instanceof('Test::Valgrind::Command')) {
+  require Test::Valgrind::Command;
+  $cmd = Test::Valgrind::Command->new(
+   command => $cmd || 'PerlScript',
+   file    => delete $args{file},
+   args    => [ '-MTest::Valgrind=run,1' ],
+  );
+ }
+
  my $tool = delete $args{tool};
  unless ($tool->$instanceof('Test::Valgrind::Tool')) {
   require Test::Valgrind::Tool;
   $tool = Test::Valgrind::Tool->new(
    tool     => $tool || 'memcheck',
-   callers  => delete($args{callers}),
+   callers  => delete $args{callers},
   );
  }
 
@@ -171,7 +153,7 @@ sub import {
   require Test::Valgrind::Action;
   $action = Test::Valgrind::Action->new(
    action => $action || 'Test',
-   diag   => delete($args{diag}),
+   diag   => delete $args{diag},
   );
  }
 
@@ -184,7 +166,7 @@ sub import {
  };
  unless ($sess) {
   $action->abort($sess, $@);
-  exit $action->status($sess);
+  return $action->status($sess);
  }
 
  eval {
@@ -202,11 +184,109 @@ sub import {
  my $status = $sess->status;
  $status = 255 unless defined $status;
 
- exit $status;
+ return $status;
 }
 
+=head2 C<import [ %options ]>
+
+In the parent process, L</import> calls L</analyse> with the arguments it received itself - except that if no C<file> option was supplied, it tries to pick the highest caller context that looks like a script.
+When the analyse finishes, it exists with the status that was returned.
+
+In the child process, it just C<return>s so that the calling code is actually run under C<valgrind>.
+
+=cut
+
+# We use as little modules as possible in run mode so that they don't pollute
+# the analysis. Hence all the requires.
+
+my $run;
+
+sub import {
+ my $class = shift;
+ $class = ref($class) || $class;
+
+ if (@_ % 2) {
+  require Carp;
+  Carp::croak('Optional arguments must be passed as key => value pairs');
+ }
+ my %args = @_;
+
+ if (defined delete $args{run} or $run) {
+  require Perl::Destruct::Level;
+  Perl::Destruct::Level::set_destruct_level(3);
+  {
+   my $oldfh = select STDOUT;
+   $|++;
+   select $oldfh;
+  }
+  $run = 1;
+  return;
+ }
+
+ my $file = delete $args{file};
+ unless (defined $file) {
+  my ($next, $last_pm);
+  for (my $l = 0; 1; ++$l) {
+   $next = (caller $l)[1];
+   last unless defined $next;
+   next if $next =~ /^\s*\(\s*eval\s*\d*\s*\)\s*$/;
+   if ($next =~ /\.pmc?$/) {
+    $last_pm = $next;
+   } else {
+    $file = $next;
+    last;
+   }
+  }
+  $file = $last_pm unless defined $file;
+ }
+
+ unless (defined $file) {
+  require Test::Builder;
+  Test::Builder->new->diag('Couldn\'t find a valid source file');
+  return;
+ }
+
+ if ($file ne '-e') {
+  exit $class->analyse(
+   file => $file,
+   %args,
+  );
+ }
+
+ require File::Temp;
+ my $tmp = File::Temp->new;
+
+ require Filter::Util::Call;
+ Filter::Util::Call::filter_add(sub {
+  my $status = Filter::Util::Call::filter_read();
+  if ($status > 0) {
+   print $tmp $_;
+  } elsif ($status == 0) {
+   close $tmp;
+   my $code = $class->analyse(
+    file => $tmp->filename,
+    %args,
+   );
+   exit $code;
+  }
+  $status;
+ });
+}
+
+=head1 VARIABLES
+
+=head2 C<$dl_unload>
+
+When set to true, all dynamic extensions that were loaded during the analysis will be unloaded at C<END> time by L<DynaLoader::dl_unload_file>.
+
+Since this obfuscates error stack traces, it's disabled by default.
+
+=cut
+
+our $dl_unload;
+
 END {
- if ($run and eval { require DynaLoader; 1 }) {
+ if ($dl_unload and $run and eval { require DynaLoader; 1 }) {
   my @rest;
   DynaLoader::dl_unload_file($_) or push @rest, $_ for @DynaLoader::dl_librefs;
   @DynaLoader::dl_librefs = @rest;
@@ -214,8 +294,6 @@ END {
 }
 
 =head1 CAVEATS
-
-You can't use this module to test code given by the C<-e> command-line switch.
 
 Perl 5.8 is notorious for leaking like there's no tomorrow, so the suppressions are very likely not to be very accurate on it. Anyhow, results will most likely be better if your perl is built with debugging enabled. Using the latest C<valgrind> available will also help.
 

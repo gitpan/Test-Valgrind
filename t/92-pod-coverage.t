@@ -18,7 +18,7 @@ plan skip_all => "Pod::Coverage $min_pc required for testing POD coverage" if $@
 
 my $trustparents = { coverage_class => 'Pod::Coverage::CountParents' };
 
-plan tests => 14;
+plan tests => 15;
 
 pod_coverage_ok('Test::Valgrind');
 
@@ -31,6 +31,7 @@ pod_coverage_ok('Test::Valgrind::Carp');
 
 pod_coverage_ok('Test::Valgrind::Command');
 pod_coverage_ok('Test::Valgrind::Command::Perl', $trustparents);
+pod_coverage_ok('Test::Valgrind::Command::PerlScript', $trustparents);
 
 pod_coverage_ok('Test::Valgrind::Report');
 pod_coverage_ok('Test::Valgrind::Session');

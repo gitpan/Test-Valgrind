@@ -64,13 +64,15 @@ my %PREREQ_PM = (
  'File::HomeDir'         => '0.86',
  'File::Path'            => 0,
  'File::Spec'            => 0,
- 'File::Temp'            => 0,
+ 'File::Temp'            => '0.14', # OO interface
+ 'Filter::Util::Call'    => 0,
  'Fcntl'                 => 0,
  'POSIX'                 => 0,
  'Perl::Destruct::Level' => 0,
  'Scalar::Util'          => 0,
  'Test::Builder'         => 0,
  'XML::Twig'             => 0,
+ 'base'                  => 0,
  'version'               => 0,
 );
 
@@ -85,6 +87,7 @@ my %META = (
   'File::Spec'          => 0,
   'POSIX'               => 0,
   'Scalar::Util'        => 0,
+  'base'                => 0,
   'version'             => 0,
  },
  build_requires => {

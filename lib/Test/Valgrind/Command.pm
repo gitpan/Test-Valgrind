@@ -9,11 +9,11 @@ Test::Valgrind::Command - Base class for Test::Valgrind commands.
 
 =head1 VERSION
 
-Version 1.00
+Version 1.01
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 =head1 DESCRIPTION
 

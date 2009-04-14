@@ -2,17 +2,20 @@ NAME
     Test::Valgrind - Test Perl code through valgrind.
 
 VERSION
-    Version 1.00
+    Version 1.01
 
 SYNOPSIS
         # From the command-line
         perl -MTest::Valgrind leaky.pl
 
+        # From the command-line, snippet style
+        perl -MTest::Valgrind -e 'leaky()'
+
         # In a test file
         use Test::More;
         eval 'use Test::Valgrind';
         plan skip_all => 'Test::Valgrind is required to test your distribution with valgrind' if $@;
-        ...
+        leaky();
 
         # In all the test files of a directory
         prove --exec 'perl -Iblib/lib -Iblib/arch -MTest::Valgrind' t/*.t
@@ -34,9 +37,15 @@ DESCRIPTION
     complementary to the other very good leak detectors listed in the "SEE
     ALSO" section.
 
-CONFIGURATION
-    You can pass parameters to "import" as a list of key / value pairs,
-    where valid keys are :
+METHODS
+  "analyse [ %options ]"
+    Run a "valgrind" analysis configured by %options :
+
+    *   "command => $command"
+
+        The Test::Valgrind::Command object (or class name) to use.
+
+        Defaults to Test::Valgrind::Command::PerlScript.
 
     *   "tool => $tool"
 
@@ -50,29 +59,57 @@ CONFIGURATION
 
         Defaults to Test::Valgrind::Action::Test.
 
-    *   "diag => $bool"
+    *   "file => $file"
 
-        If true, print the output of the test script as diagnostics.
+        The file name of the script to analyse.
+
+        Ignored if you supply your own custom "command", but mandatory
+        otherwise.
 
     *   "callers => $number"
 
         Specify the maximum stack depth studied when valgrind encounters an
         error. Raising this number improves granularity.
 
-        Default is 12.
+        Ignored if you supply your own custom "tool", otherwise defaults to
+        12.
+
+    *   "diag => $bool"
+
+        If true, print the output of the test script as diagnostics.
+
+        Ignored if you supply your own custom "action", otherwise defaults
+        to false.
 
     *   "extra_supps => \@files"
 
         Also use suppressions from @files besides "perl"'s.
 
+        Defaults to empty.
+
     *   "no_def_supp => $bool"
 
         If true, do not use the default suppression file.
 
-CAVEATS
-    You can't use this module to test code given by the "-e" command-line
-    switch.
+        Defaults to false.
 
+  "import [ %options ]"
+    In the parent process, "import" calls "analyse" with the arguments it
+    received itself - except that if no "file" option was supplied, it tries
+    to pick the highest caller context that looks like a script. When the
+    analyse finishes, it exists with the status that was returned.
+
+    In the child process, it just "return"s so that the calling code is
+    actually run under "valgrind".
+
+VARIABLES
+  $dl_unload
+    When set to true, all dynamic extensions that were loaded during the
+    analysis will be unloaded at "END" time by DynaLoader::dl_unload_file.
+
+    Since this obfuscates error stack traces, it's disabled by default.
+
+CAVEATS
     Perl 5.8 is notorious for leaking like there's no tomorrow, so the
     suppressions are very likely not to be very accurate on it. Anyhow,
     results will most likely be better if your perl is built with debugging

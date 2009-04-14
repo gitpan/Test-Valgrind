@@ -9,11 +9,11 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.00
+Version 1.01
 
 =cut
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 =head1 DESCRIPTION
 
@@ -188,7 +188,7 @@ use base qw/Test::Valgrind::Report/;
 
 use Config qw/%Config/;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 my @kinds = qw/
  InvalidFree
@@ -256,7 +256,7 @@ sub dump {
 
 package Test::Valgrind::Tool::memcheck::Twig;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 use Scalar::Util;
 
@@ -336,7 +336,7 @@ sub handle_error {
 
 package Test::Valgrind::Tool::memcheck::Twig::Elt;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 BEGIN { require XML::Twig; }
 
