@@ -9,11 +9,11 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -79,7 +79,7 @@ Read-only accessor for the underlying L<XML::Twig> parser.
 
 =cut
 
-sub twig    { $_[0]->{twig} }
+sub twig { $_[0]->{twig} }
 
 sub suppressions_tag { 'memcheck-' . $_[1]->version }
 
@@ -144,7 +144,7 @@ sub finish {
  my ($self, $sess) = @_;
 
  $self->_session(undef);
- $self->SUPER::start($sess);
+ $self->SUPER::finish($sess);
 
  return;
 }
@@ -186,9 +186,7 @@ package Test::Valgrind::Tool::memcheck::Report;
 
 use base qw/Test::Valgrind::Report/;
 
-use Config qw/%Config/;
-
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 my @kinds = qw/
  InvalidFree
@@ -217,7 +215,11 @@ sub valid_kind { exists $kinds_hashed{$_[1]} }
 
 sub is_leak    { $_[0]->kind =~ /^Leak_/ ? 1 : '' }
 
-my $pad = 2 * ($Config{ptrsize} || 4);
+my $pad;
+BEGIN {
+ require Config;
+ $pad = 2 * ($Config::Config{ptrsize} || 4);
+}
 
 sub dump {
  my ($self) = @_;
@@ -256,7 +258,7 @@ sub dump {
 
 package Test::Valgrind::Tool::memcheck::Twig;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 use Scalar::Util;
 
@@ -336,7 +338,7 @@ sub handle_error {
 
 package Test::Valgrind::Tool::memcheck::Twig::Elt;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 BEGIN { require XML::Twig; }
 

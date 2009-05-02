@@ -9,11 +9,11 @@ Test::Valgrind::Action::Suppressions - Generate suppressions for a given tool.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -82,28 +82,7 @@ sub start {
 
  $self->SUPER::start($sess);
 
- $self->{status} = undef;
- $self->{total}  = 0;
- delete $self->{diagnostics};
-
- if ($self->{fh}) {
-  close $self->{fh} or $self->_croak("close(\$self->{fh}): $!");
- }
-
- my $target = $self->target;
-
- require File::Spec;
- my ($vol, $dir, $file) = File::Spec->splitpath($target);
- my $base = File::Spec->catpath($vol, $dir, '');
- unless (-e $base) {
-  require File::Path;
-  File::Path::mkpath([ $base ]);
- } else {
-  1 while unlink $target;
- }
-
- open $self->{fh}, '>', $target
-                or $self->_croak("open(\$self->{fh}, '>', \$self->target): $!");
+ delete @{$self}{qw/status supps diagnostics/};
 
  $self->save_fh(\*STDOUT => '>' => undef);
  $self->save_fh(\*STDERR => '>' => undef);
@@ -136,12 +115,7 @@ sub report {
 
  $self->SUPER::report($sess, $report);
 
- ++$self->{total};
-
- print { $self->{fh} } "{\n"
-                       . $self->name . $report->id . "\n"
-                       . $report->data
-                       . "}\n";
+ push @{$self->{supps}}, $report;
 
  return;
 }
@@ -153,11 +127,36 @@ sub finish {
 
  $self->restore_all_fh;
 
- close $self->{fh} or $self->_croak("close(\$self->{fh}): $!");
-
  print $self->{diagnostics} if defined $self->{diagnostics};
  delete $self->{diagnostics};
- print "Found $self->{total} distinct suppressions\n";
+
+ my $target = $self->target;
+
+ require File::Spec;
+ my ($vol, $dir, $file) = File::Spec->splitpath($target);
+ my $base = File::Spec->catpath($vol, $dir, '');
+ unless (-e $base) {
+  require File::Path;
+  File::Path::mkpath([ $base ]);
+ } else {
+  1 while unlink $target;
+ }
+
+ open my $fh, '>', $target
+                        or $self->_croak("open(\$fh, '>', \$self->target): $!");
+
+ my (%seen, $id);
+ for (sort { $a->data cmp $b->data }
+       grep !$seen{$_->data}++, @{$self->{supps}}) {
+  print $fh "{\n"
+            . $self->name . ++$id . "\n"
+            . $_->data
+            . "}\n";
+ }
+
+ close $fh or $self->_croak("close(\$fh): $!");
+
+ print "Found $id distinct suppressions\n";
 
  $self->{status} = 0;
 

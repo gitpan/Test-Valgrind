@@ -9,11 +9,11 @@ Test::Valgrind::Tool::SuppressionsParser - Mock Test::Valgrind::Tool for parsing
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -40,7 +40,7 @@ sub new { shift->_croak('This mock tool isn\'t meant to be used directly') }
 
 =head2 C<report_class_suppressions $session>
 
-Generated reports are L<Test::Valgrind::Report::Suppressions> objects.
+Generated reports are C<Test::Valgrind::Report::Suppressions> objects.
 Their C<data> member contains the raw text of the suppression.
 
 =cut
@@ -104,16 +104,12 @@ sub parse_suppressions {
   }
  }
 
- my %dupes;
- @dupes{@supps, @extra} = ();
- @supps = keys %dupes;
-
  my $num;
  $sess->report($self->report_class($sess)->new(
   id   => ++$num,
   kind => 'Suppression',
   data => $_,
- )) for @supps;
+ )) for @supps, @extra;
 }
 
 =head1 SEE ALSO

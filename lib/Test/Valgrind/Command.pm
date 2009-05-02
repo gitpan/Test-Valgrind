@@ -9,11 +9,11 @@ Test::Valgrind::Command - Base class for Test::Valgrind commands.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -50,7 +50,7 @@ sub new {
  }
 
  my $args = delete $args{args};
- $class->_croak('Invalid argument list') unless $args and ref $args eq 'ARRAY';
+ $class->_croak('Invalid argument list') if $args and ref $args ne 'ARRAY';
 
  bless {
   args => $args,
@@ -97,6 +97,17 @@ This method must be implemented when subclassing.
 =cut
 
 sub suppressions_tag;
+
+=head2 C<filter $session, $report>
+
+The <$session> calls this method after receiving a report from the tool and before forwarding it to the action.
+You can either return a mangled C<$report> (which does not need to be a clone of the original) or C<undef> if you want the action to ignore it completely.
+
+Defaults to the identity function.
+
+=cut
+
+sub filter { $_[2] }
 
 =head1 SEE ALSO
 

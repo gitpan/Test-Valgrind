@@ -9,11 +9,11 @@ Test::Valgrind::Tool - Base class for Test::Valgrind tools.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -156,7 +156,7 @@ sub parse {
 
 =head2 C<parse_suppressions $sesssion, $fh>
 
-Parse the suppression reports sent by the C<valgrind> process attached to the session C<$session> through the filehandle C<$fh>.
+Parse the suppression reports that the C<valgrind> process attached to the session C<$session> send through the filehandle C<$fh>.
 
 This method must be implemented when subclassing.
 

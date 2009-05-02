@@ -9,11 +9,11 @@ Test::Valgrind::Command::PerlScript - A Test::Valgrind command that invokes a pe
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -29,12 +29,21 @@ This class inherits L<Test::Valgrind::Command::Perl>.
 
 =head2 C<< new file => $file, [ taint_mode => $taint_mode ], ... >>
 
-Your usual constructor.
+The package constructor, which takes several options :
+
+=over 4
+
+=item *
 
 C<$file> is the path to the C<perl> script you want to run.
 
-C<$taint_mode> is a boolean that specifies if the script should be run under taint mode.
-If C<undef> is passed (which is the default), the constructor will try to infer it from the shebang line of the script.
+This option is mandatory.
+
+=item *
+
+C<$taint_mode> is actually handled by the parent class L<Test::Valgrind::Command::Perl>, but it gets special handling in this subclass : if C<undef> is passed (which is the default), the constructor will try to infer its right value from the shebang line of the script.
+
+=back
 
 Other arguments are passed straight to C<< Test::Valgrind::Command::Perl->new >>.
 
@@ -46,14 +55,10 @@ sub new {
 
  my %args = @_;
 
- my $file       = delete $args{file};
+ my $file = delete $args{file};
  $class->_croak('Invalid script file') unless $file and -e $file;
+
  my $taint_mode = delete $args{taint_mode};
-
- my $self = bless $class->SUPER::new(%args), $class;
-
- $self->{file} = $file;
-
  if (not defined $taint_mode and open my $fh, '<', $file) {
   my $first = <$fh>;
   close $fh;
@@ -62,7 +67,13 @@ sub new {
   }
   $taint_mode = 0 unless defined $taint_mode;
  }
- $self->{taint_mode} = $taint_mode;
+
+ my $self = bless $class->SUPER::new(
+  taint_mode => $taint_mode,
+  %args,
+ ), $class;
+
+ $self->{file} = $file;
 
  return $self;
 }
@@ -73,19 +84,14 @@ sub new_trainer { Test::Valgrind::Command::Perl->new_trainer }
 
 Read-only accessor for the C<file> option.
 
-=head2 C<taint_mode>
-
-Read-only accessor for the C<taint_mode> option.
-
 =cut
 
-eval "sub $_ { \$_[0]->{$_} }" for qw/file taint_mode/;
+sub file { $_[0]->{file} }
 
 sub args {
  my $self = shift;
 
  return $self->SUPER::args(@_),
-        (('-T') x!! $self->taint_mode),
         $self->file
 }
 

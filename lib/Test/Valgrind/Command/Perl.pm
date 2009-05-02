@@ -9,13 +9,16 @@ Test::Valgrind::Command::Perl - A Test::Valgrind command that invokes perl.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
+
+This command is the base for all C<perl>-based commands.
+It handles the suppression generation and sets the main command-line flags.
 
 =cut
 
@@ -27,15 +30,31 @@ use base qw/Test::Valgrind::Command Test::Valgrind::Carp/;
 
 This class inherits L<Test::Valgrind::Command>.
 
-=head2 C<< new perl => $^X, inc => \@INC, ... >>
+=head2 C<< new perl => $^X, inc => \@INC, taint_mode => $taint_mode, ... >>
 
-Your usual constructor.
+The package constructor, which takes several options :
+
+=over 4
+
+=item *
 
 The C<perl> option specifies which C<perl> executable will run the arugment list given in C<args>.
-It defaults to C<$^X>.
+
+Defaults to C<$^X>.
+
+=item *
 
 C<inc> is a reference to an array of paths that will be passed as C<-I> to the invoked command.
-It defaults to C<@INC>.
+
+Defaults to C<@INC>.
+
+=item *
+
+C<$taint_mode> is a boolean that specifies if the script should be run under taint mode.
+
+Defaults to false.
+
+=back
 
 Other arguments are passed straight to C<< Test::Valgrind::Command->new >>.
 
@@ -47,16 +66,19 @@ sub new {
 
  my %args = @_;
 
- my $perl = delete($args{perl}) || $^X;
- my $inc  = delete($args{inc})  || [ @INC ];
+ my $perl       = delete $args{perl} || $^X;
+ my $inc        = delete $args{inc}  || [ @INC ];
  $class->_croak('Invalid INC list') unless ref $inc eq 'ARRAY';
+ my $taint_mode = delete $args{taint_mode};
 
  my $trainer_file = delete $args{trainer_file};
 
  my $self = bless $class->SUPER::new(%args), $class;
 
- $self->{perl}         = $perl;
- $self->{inc}          = $inc;
+ $self->{perl}       = $perl;
+ $self->{inc}        = $inc;
+ $self->{taint_mode} = $taint_mode;
+
  $self->{trainer_file} = $trainer_file;
 
  return $self;
@@ -97,10 +119,19 @@ Read-only accessor for the C<inc> option.
 
 sub inc { @{$_[0]->{inc} || []} }
 
+=head2 C<taint_mode>
+
+Read-only accessor for the C<taint_mode> option.
+
+=cut
+
+sub taint_mode { $_[0]->{taint_mode} }
+
 sub args {
  my $self = shift;
 
  return $self->perl,
+        (('-T') x!! $self->taint_mode),
         map("-I$_", $self->inc),
         $self->SUPER::args(@_);
 }
@@ -136,6 +167,22 @@ sub suppressions_tag {
  }
 
  return $self->{suppressions_tag};
+}
+
+sub filter {
+ my ($self, $session, $report) = @_;
+
+ return $report if $report->is_diag
+                or not $report->isa('Test::Valgrind::Report::Suppressions');
+
+ my $data = $report->data;
+ $data =~ s/^[^\r\n]*\bPerl_runops_(?:standard|debug)\b.*//ms;
+
+ $report->new(
+  id   => $report->id,
+  kind => $report->kind,
+  data => $data,
+ );
 }
 
 sub DESTROY {

@@ -9,11 +9,11 @@ Test::Valgrind::Report - Base class for Test::Valgrind error reports.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 use base qw/Test::Valgrind::Carp/;
 

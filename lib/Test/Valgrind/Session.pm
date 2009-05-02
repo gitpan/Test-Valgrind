@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 DESCRIPTION
 
@@ -176,13 +176,30 @@ sub extra_supps { @{$_[0]->{extra_supps} || []} }
 
 Runs the command C<$command> through C<valgrind> with the tool C<$tool>, which will report to the action C<$action>.
 
+If the command is a L<Test::Valgrind::Command::Aggregate> object, the action and the tool will be initialized once before running all the aggregated commands.
+
 =cut
 
 sub run {
  my $self = shift;
 
- $self->start(@_);
+ my %args = @_;
+
+ $self->start(%args);
  my $guard = bless sub { $self->finish } => 'Test::Valgrind::Session::Guard';
+
+ $self->_run($args{command});
+}
+
+sub _run {
+ my ($self, $cmd) = @_;
+
+ if ($cmd->isa('Test::Valgrind::Command::Aggregate')) {
+  $self->_run($_) for $cmd->commands;
+  return;
+ }
+
+ $self->command($cmd);
 
  $self->report(Test::Valgrind::Report->new_diag(
   'Using valgrind ' . $self->version . ' located at ' . $self->valgrind
@@ -302,7 +319,8 @@ sub report_class { $_[0]->tool->report_class($_[0]) }
 =head2 C<def_supp_file>
 
 Returns an absolute path to the default suppression file associated to the current session.
-C<undef> will be returned as soon as any of C<< ->tool->suppressions_tag >> or C<< ->tool->suppressions_tag >> are also C<undef>.
+
+C<undef> will be returned as soon as any of C<< ->command->suppressions_tag >> or C<< ->tool->suppressions_tag >> are also C<undef>.
 Otherwise, the file part of the name is builded by joining those two together, and the directory part is roughly F<< File::HomeDir->my_home / .perl / Test-Valgrind / suppressions / $VERSION >>.
 
 =cut
@@ -394,8 +412,14 @@ Forwards to C<< ->action->report >> after unshifting the session object to the a
 =cut
 
 sub report {
- my $self = shift;
- $self->action->report($self, @_);
+ my ($self, $report) = @_;
+
+ return unless defined $report;
+
+ $report = $self->command->filter($self, $report);
+ return unless defined $report;
+
+ $self->action->report($self, $report);
 }
 
 =head2 C<finish>

@@ -11,6 +11,7 @@ lib/Test/Valgrind/Action/Suppressions.pm
 lib/Test/Valgrind/Action/Test.pm
 lib/Test/Valgrind/Carp.pm
 lib/Test/Valgrind/Command.pm
+lib/Test/Valgrind/Command/Aggregate.pm
 lib/Test/Valgrind/Command/Perl.pm
 lib/Test/Valgrind/Command/PerlScript.pm
 lib/Test/Valgrind/Report.pm

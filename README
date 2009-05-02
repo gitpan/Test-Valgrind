@@ -1,8 +1,9 @@
 NAME
-    Test::Valgrind - Test Perl code through valgrind.
+    Test::Valgrind - Generate suppressions, analyse and test any command
+    with valgrind.
 
 VERSION
-    Version 1.01
+    Version 1.02
 
 SYNOPSIS
         # From the command-line
@@ -29,6 +30,11 @@ DESCRIPTION
     ~/.perl/Test-Valgrind/suppressions/$VERSION. The actual run will then
     take place, and tests will be passed or failed according to the result
     of the analysis.
+
+    The complete API is much more versatile than this. It allows you to run
+    *any* executable under valgrind, generate the corresponding suppressions
+    and convert the analysis output to TAP so that it can be incorporated
+    into your project's testsuite.
 
     Due to the nature of perl's memory allocator, this module can't track
     leaks of Perl objects. This includes non-mortalized scalars and memory
@@ -96,8 +102,8 @@ METHODS
   "import [ %options ]"
     In the parent process, "import" calls "analyse" with the arguments it
     received itself - except that if no "file" option was supplied, it tries
-    to pick the highest caller context that looks like a script. When the
-    analyse finishes, it exists with the status that was returned.
+    to pick the first caller context that looks like a script. When the
+    analyse ends, it exits with the status that was returned.
 
     In the child process, it just "return"s so that the calling code is
     actually run under "valgrind".
@@ -105,7 +111,8 @@ METHODS
 VARIABLES
   $dl_unload
     When set to true, all dynamic extensions that were loaded during the
-    analysis will be unloaded at "END" time by DynaLoader::dl_unload_file.
+    analysis will be unloaded at "END" time by "dl_unload_file" in
+    DynaLoader.
 
     Since this obfuscates error stack traces, it's disabled by default.
 

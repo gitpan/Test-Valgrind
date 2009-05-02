@@ -1,5 +1,12 @@
 Revision history for Test-Valgrind
 
+1.02    2009-05-02 12:05 UTC
+        + Add : Commands can now be aggregated.
+        + Add : The commands can now also filter and mangle reports.
+        + Chg : The perl suppressions are now stripped from everything below
+                Perl_runops_*.
+        + Doc : Typos, nits and clarifications.
+
 1.01    2009-04-14 21:15 UTC
         + Add : Allow testing code given by -e. Hurray for source filters!
         + Fix : Lazily load version.pm in Test::Valgrind::Session so that it's

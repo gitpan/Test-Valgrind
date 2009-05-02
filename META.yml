@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               Test-Valgrind
-version:            1.01
-abstract:           Test Perl code through valgrind.
+version:            1.02
+abstract:           Generate suppressions, analyse and test any command with valgrind.
 author:
     - Vincent Pit <perl@profvince.com>
 license:            perl
@@ -57,7 +57,7 @@ resources:
     bugtracker:  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind
     homepage:    http://search.cpan.org/dist/Test-Valgrind/
     license:     http://dev.perl.org/licenses/
-    repository:  http://git.profvince.com/perl/modules/Test-Valgrind.git
+    repository:  http://git.profvince.com/?p=perl%2Fmodules%2FTest-Valgrind.git
 no_index:
     directory:
         - t

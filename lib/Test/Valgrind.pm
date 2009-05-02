@@ -5,15 +5,15 @@ use warnings;
 
 =head1 NAME
 
-Test::Valgrind - Test Perl code through valgrind.
+Test::Valgrind - Generate suppressions, analyse and test any command with valgrind.
 
 =head1 VERSION
 
-Version 1.01
+Version 1.02
 
 =cut
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 =head1 SYNOPSIS
 
@@ -37,6 +37,9 @@ our $VERSION = '1.01';
 This module is a front-end to the C<Test::Valgrind::*> API that lets you run Perl code through the C<memcheck> tool of the C<valgrind> memory debugger, to test it for memory errors and leaks.
 If they aren't available yet, it will first generate suppressions for the current C<perl> interpreter and store them in the portable flavour of F<~/.perl/Test-Valgrind/suppressions/$VERSION>.
 The actual run will then take place, and tests will be passed or failed according to the result of the analysis.
+
+The complete API is much more versatile than this.
+It allows you to run I<any> executable under valgrind, generate the corresponding suppressions and convert the analysis output to TAP so that it can be incorporated into your project's testsuite.
 
 Due to the nature of perl's memory allocator, this module can't track leaks of Perl objects.
 This includes non-mortalized scalars and memory cycles. However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>.
@@ -189,8 +192,8 @@ sub analyse {
 
 =head2 C<import [ %options ]>
 
-In the parent process, L</import> calls L</analyse> with the arguments it received itself - except that if no C<file> option was supplied, it tries to pick the highest caller context that looks like a script.
-When the analyse finishes, it exists with the status that was returned.
+In the parent process, L</import> calls L</analyse> with the arguments it received itself - except that if no C<file> option was supplied, it tries to pick the first caller context that looks like a script.
+When the analyse ends, it exits with the status that was returned.
 
 In the child process, it just C<return>s so that the calling code is actually run under C<valgrind>.
 
@@ -277,7 +280,7 @@ sub import {
 
 =head2 C<$dl_unload>
 
-When set to true, all dynamic extensions that were loaded during the analysis will be unloaded at C<END> time by L<DynaLoader::dl_unload_file>.
+When set to true, all dynamic extensions that were loaded during the analysis will be unloaded at C<END> time by L<DynaLoader/dl_unload_file>.
 
 Since this obfuscates error stack traces, it's disabled by default.
 
