@@ -9,11 +9,11 @@ Test::Valgrind - Generate suppressions, analyse and test any command with valgri
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 SYNOPSIS
 
@@ -168,7 +168,9 @@ sub analyse {
   );
  };
  unless ($sess) {
-  $action->abort($sess, $@);
+  my $err = $@;
+  $err =~ s/^(Empty valgrind candidates list|No appropriate valgrind executable could be found)\s+at.*/$1/;
+  $action->abort($sess, $err);
   return $action->status($sess);
  }
 

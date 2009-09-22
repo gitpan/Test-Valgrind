@@ -1,5 +1,17 @@
 Revision history for Test-Valgrind
 
+1.10    2009-09-22 18:45 UTC
+        + Chg : valgrind is no longer required to be installed before installing
+                this module.
+        + Chg : The parser logic that used to be located inside the tool was
+                moved to a new Test::Valgrind::Parser hierarchy. The tool
+                decides which parser should be used by implementing the
+                "parser_class" method.
+        + Fix : Compatibility with valgrind 3.5.
+        + Fix : The "valgrind" option to Test::Valgrind::Session->new wasn't
+                doing anything.
+        + Fix : The "Test" action could generate inappropriate error messages.
+
 1.02    2009-05-02 12:05 UTC
         + Add : Commands can now be aggregated.
         + Add : The commands can now also filter and mangle reports.

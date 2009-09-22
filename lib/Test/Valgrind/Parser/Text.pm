@@ -1,11 +1,11 @@
-package Test::Valgrind::Carp;
+package Test::Valgrind::Parser::Text;
 
 use strict;
 use warnings;
 
 =head1 NAME
 
-Test::Valgrind::Carp - Carp-like private methods for Test::Valgrind objects.
+Test::Valgrind::Parser::Text - Parse valgrind output as a text stream.
 
 =head1 VERSION
 
@@ -15,16 +15,35 @@ Version 1.10
 
 our $VERSION = '1.10';
 
-sub _croak {
- shift;
- require Carp;
- local $Carp::CarpLevel = ($Carp::CarpLevel || 0) + 1;
- Carp::croak(@_);
+=head1 DESCRIPTION
+
+This is a L<Test::Valgrind::Parser> object that can extract suppressions from C<valgrind>'s text output.
+
+=cut
+
+use base qw/Test::Valgrind::Parser/;
+
+=head1 METHODS
+
+=head2 C<args $session, $fh>
+
+Returns the arguments needed to tell C<valgrind> to print to the filehandle C<$fh>.
+
+=cut
+
+sub args {
+ my $self = shift;
+ my ($session, $fh) = @_;
+
+ return (
+  $self->SUPER::args(@_),
+  '--log-fd=' . fileno($fh),
+ );
 }
 
 =head1 SEE ALSO
 
-L<Test::Valgrind>.
+L<Test::Valgrind>, L<Test::Valgrind::Parser>.
 
 =head1 AUTHOR
 
@@ -41,7 +60,7 @@ I will be notified, and then you'll automatically be notified of progress on you
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Test::Valgrind::Carp
+    perldoc Test::Valgrind::Parser::Text
 
 =head1 COPYRIGHT & LICENSE
 
@@ -51,4 +70,4 @@ This program is free software; you can redistribute it and/or modify it under th
 
 =cut
 
-1; # End of Test::Valgrind::Carp
+1; # End of Test::Valgrind::Parser::Text

@@ -9,11 +9,11 @@ Test::Valgrind::Action - Base class for Test::Valgrind actions.
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,7 @@ Actions are called each time a tool encounter an error and decide what to do wit
 
 =cut
 
-use base qw/Test::Valgrind::Carp/;
+use base qw/Test::Valgrind::Component Test::Valgrind::Carp/;
 
 =head1 METHODS
 
@@ -49,11 +49,7 @@ sub new {
   return $action->new(%args);
  }
 
- my $self = bless { }, $class;
-
- $self->started(undef);
-
- $self;
+ $class->SUPER::new(@_);
 }
 
 =head2 C<do_suppressions>
@@ -64,37 +60,18 @@ Indicates if the action wants C<valgrind> to run in suppression-generating mode 
 
 sub do_suppressions { 0 }
 
-=head2 C<started>
-
-Specifies whether the action is running (C<1>), stopped (C<0>) or was never started (C<undef>).
-
-=cut
-
-sub started { @_ <= 1 ? $_[0]->{started} : ($_[0]->{started} = $_[1]) }
-
 =head2 C<start $session>
 
 Called when the C<$session> starts.
 
-Defaults to set L</started>.
-
-=cut
-
-sub start {
- my ($self) = @_;
-
- $self->_croak('Action already started') if $self->started;
- $self->started(1);
-
- return;
-}
+Defaults to set L<Test::Valgrind::Component/started>.
 
 =head2 C<report $session, $report>
 
 Invoked each time the C<valgrind> process attached to the C<$session> spots an error.
 C<$report> is a L<Test::Valgrind::Report> object describing the error.
 
-Defaults to check L</started>.
+Defaults to check L<Test::Valgrind::Component/started>.
 
 =cut
 
@@ -120,18 +97,7 @@ sub abort { $_[0]->_croak($_[2]) }
 
 Called when the C<$session> finishes.
 
-Defaults to clear L</started>.
-
-=cut
-
-sub finish {
- my ($self) = @_;
-
- return unless $self->started;
- $self->started(0);
-
- return;
-}
+Defaults to clear L<Test::Valgrind::Component/started>.
 
 =head2 C<status $session>
 
@@ -152,7 +118,7 @@ sub status {
 
 =head1 SEE ALSO
 
-L<Test::Valgrind>, L<Test::Valgrind::Session>.
+L<Test::Valgrind>, L<Test::Valgrind::Component>, L<Test::Valgrind::Session>.
 
 =head1 AUTHOR
 

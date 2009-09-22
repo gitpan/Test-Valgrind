@@ -34,10 +34,11 @@ pod_coverage_ok('Test::Valgrind::Command::Aggregate', $trustparents);
 pod_coverage_ok('Test::Valgrind::Command::Perl', $trustparents);
 pod_coverage_ok('Test::Valgrind::Command::PerlScript', $trustparents);
 
+pod_coverage_ok('Test::Valgrind::Parser::Suppressions::Text');
+
 pod_coverage_ok('Test::Valgrind::Report');
 pod_coverage_ok('Test::Valgrind::Session');
 pod_coverage_ok('Test::Valgrind::Suppressions');
 
 pod_coverage_ok('Test::Valgrind::Tool');
-pod_coverage_ok('Test::Valgrind::Tool::SuppressionsParser');
 pod_coverage_ok('Test::Valgrind::Tool::memcheck', $trustparents);

@@ -9,11 +9,11 @@ Test::Valgrind::Command::Aggregate - A Test::Valgrind command that aggregates se
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 DESCRIPTION
 

@@ -1,98 +1,95 @@
-package Test::Valgrind::Tool::SuppressionsParser;
+package Test::Valgrind::Parser::Suppressions::Text;
 
 use strict;
 use warnings;
 
 =head1 NAME
 
-Test::Valgrind::Tool::SuppressionsParser - Mock Test::Valgrind::Tool for parsing valgrind suppressions.
+Test::Valgrind::Parser::Suppressions::Text - Parse valgrind suppressions output as text blocks.
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 DESCRIPTION
 
-This class provides a default C<parse_suppressions> method, so that real tools for which suppressions are meaningful can exploit it by inheriting.
-
-It's not meant to be used directly as a tool.
+This is a L<Test::Valgrind::Parser> object that can extract suppressions from C<valgrind>'s text output.
 
 =cut
 
-use base qw/Test::Valgrind::Carp/;
+use base qw/Test::Valgrind::Parser::Text Test::Valgrind::Carp/;
 
 =head1 METHODS
 
-=head2 C<new>
-
-Just a croaking stub to remind you not to use this class as a real tool.
-
-If your tool both inherit from this class and from C<Test::Valgrind::Tool>, and that you want to dispatch the call to your C<new> to its ancestors', be careful with C<SUPER> which may end up calling this dieing version of C<new>.
-The solution is to either put C<Test::Valgrind::Tool> first in the C<@ISA> list or to explicitely call C<Test::Valgrind::Tool::new> instead of C<SUPER::new>.
-
-=cut
-
-sub new { shift->_croak('This mock tool isn\'t meant to be used directly') }
-
-=head2 C<report_class_suppressions $session>
+=head2 C<report_class>
 
 Generated reports are C<Test::Valgrind::Report::Suppressions> objects.
 Their C<data> member contains the raw text of the suppression.
 
 =cut
 
-sub report_class_suppressions { 'Test::Valgrind::Report::Suppressions' }
+sub report_class { 'Test::Valgrind::Report::Suppressions' }
 
-=head2 C<parse_suppressions $session, $fh>
+=head2 C<parse $session, $fh>
 
 Parses the filehandle C<$fh> fed with the output of F<valgrind --gen-suppressions=all> and sends a report to the session C<$session> for each suppression.
 
 =cut
 
-sub parse_suppressions {
+sub parse {
  my ($self, $sess, $fh) = @_;
 
  my ($s, $in) = ('', 0);
  my @supps;
 
  while (<$fh>) {
-  s/^\s*#\s//;
-  next if /^==/;
+  s/^\s*#\s//;        # Strip comments
+
+  next if /^==/;      # Valgrind info line
   next if /valgrind/; # and /\Q$file\E/;
-  s/^\s*//;
-  s/<[^>]+>//;
-  s/\s*$//;
+
+  s/^\s*//;           # Strip leading spaces
+  s/<[^>]+>//;        # Strip tags
+  s/\s*$//;           # Strip trailing spaces
   next unless length;
-  if ($_ eq '{') {
+
+  if ($_ eq '{') {      # A suppression block begins
    $in = 1;
-  } elsif ($_ eq '}') {
-   my $unknown_tail;
-   ++$unknown_tail while $s =~ s/(\n)\s*obj:\*\s*$/$1/;
-   $s .= "...\n" if $unknown_tail and $sess->version ge '3.4.0';
-   push @supps, $s;
-   $s  = '';
+  } elsif ($_ eq '}') { # A suppression block ends
+   # With valgrind 3.4.0, we can replace unknown series of frames by '...'
+   if ($sess->version ge '3.4.0') {
+    my $unknown_tail;
+    ++$unknown_tail while $s =~ s/(\n)\s*obj:\*\s*$/$1/;
+    $s .= "...\n" if $unknown_tail;
+   }
+
+   push @supps, $s;     # Add the suppression that just ended to the list
+   $s  = '';            # Reset the state
    $in = 0;
-  } elsif ($in) {
-   $s .= "$_\n";
+  } elsif ($in) {       # We're inside a suppresion block
+   $s .= "$_\n";        # Append the current line to the state
   }
  }
 
  my @extra;
+
  for (@supps) {
   if (/\bfun:(m|c|re)alloc\b/) {
    my $t = $1;
-   my %call;
-   if ($t eq 'm') { # malloc can also be called by calloc or realloc
+
+   my %call; # Frames to append (if the value is 1) or to prepend (if it's 0)
+   if ($t eq 'm') {       # malloc can also be called by calloc or realloc
     $call{$_} = 1 for qw/calloc realloc/;
    } elsif ($t eq 're') { # realloc can also call malloc or free
     $call{$_} = 0 for qw/malloc free/;
-   } elsif ($t eq 'c') { # calloc can also call malloc
+   } elsif ($t eq 'c') {  # calloc can also call malloc
     $call{$_} = 0 for qw/malloc/;
    }
+
    my $c = $_;
    for (keys %call) {
     my $d = $c;
@@ -114,7 +111,7 @@ sub parse_suppressions {
 
 =head1 SEE ALSO
 
-L<Test::Valgrind>, L<Test::Valgrind::Tool>.
+L<Test::Valgrind>, L<Test::Valgrind::Parser::Text>.
 
 =head1 AUTHOR
 
@@ -131,7 +128,7 @@ I will be notified, and then you'll automatically be notified of progress on you
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Test::Valgrind::Tool::SuppressionsParser
+    perldoc Test::Valgrind::Parser::Suppressions::Text
 
 =head1 COPYRIGHT & LICENSE
 
@@ -141,7 +138,7 @@ This program is free software; you can redistribute it and/or modify it under th
 
 =cut
 
-# End of Test::Valgrind::Tool::SuppressionsParser
+# End of Test::Valgrind::Parser::Suppressions::Text
 
 package Test::Valgrind::Report::Suppressions;
 

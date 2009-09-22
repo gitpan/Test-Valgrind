@@ -9,11 +9,11 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 DESCRIPTION
 
@@ -21,11 +21,11 @@ This tool parses the XML output of a C<memcheck> run with L<XML::Twig>.
 
 =cut
 
-use base qw/Test::Valgrind::Tool::SuppressionsParser Test::Valgrind::Tool/;
+use base qw/Test::Valgrind::Tool/;
 
 =head1 METHODS
 
-This class inherits L<Test::Valgrind::Tool> and L<Test::Valgrind::Tool::SuppressionsParser>.
+This class inherits L<Test::Valgrind::Tool>.
 
 =head2 C<requires_version>
 
@@ -58,8 +58,6 @@ sub new {
 
  $self->{callers} = $callers;
 
- $self->{twig} = Test::Valgrind::Tool::memcheck::Twig->new(tool => $self);
-
  $self;
 }
 
@@ -73,26 +71,43 @@ Read-only accessor for the C<callers> option.
 
 sub callers { $_[0]->{callers} }
 
-=head2 C<twig>
+sub suppressions_tag { 'memcheck-' . $_[1]->version }
 
-Read-only accessor for the underlying L<XML::Twig> parser.
+=head2 C<parser_class $session>
+
+This tool uses a C<Test::Valgrind::Parser::XML::Twig> parser in analysis mode, and a C<Test::Valgrind::Parser::Suppressions::Text> parser in suppressions mode.
 
 =cut
 
-sub twig { $_[0]->{twig} }
+sub parser_class {
+ my ($self, $session) = @_;
 
-sub suppressions_tag { 'memcheck-' . $_[1]->version }
+ my $class = $session->do_suppressions
+           ? 'Test::Valgrind::Parser::Suppressions::Text'
+           : 'Test::Valgrind::Parser::XML::Twig';
 
-=head2 C<report_class_analysis $session>
+ local $@;
+ eval "require $class";
+
+ return $class;
+}
+
+=head2 C<report_class $session>
 
 This tool emits C<Test::Valgrind::Tool::memcheck::Report> object reports in analysis mode.
 
 =cut
 
-sub report_class_analysis { 'Test::Valgrind::Tool::memcheck::Report' }
+sub report_class {
+ my ($self, $session) = @_;
+
+ $session->do_suppressions ? 'Test::Valgrind::Report::Suppressions'
+                           : 'Test::Valgrind::Tool::memcheck::Report'
+}
 
 sub args {
- my ($self, $sess) = @_;
+ my $self = shift;
+ my ($sess) = @_;
 
  my @args = (
   '--tool=memcheck',
@@ -108,50 +123,14 @@ sub args {
   push @args, '--xml=yes';
  }
 
- push @args, $self->SUPER::args();
+ push @args, $self->SUPER::args(@_);
 
  return @args;
 }
 
-# We must store the session in ourselves because it's only possible to pass
-# arguments to XML::Twig objects by a global stash.
-
-sub _session { @_ <= 1 ? $_[0]->{_session} : ($_[0]->{_session} = $_[1]) }
-
-sub start {
- my ($self, $sess) = @_;
-
- $self->_croak('This memcheck tool can\'t be run in two sessions at once')
-                                                             if $self->_session;
-
- $self->SUPER::start($sess);
- $self->_session($sess);
-
- return;
-}
-
-sub parse_analysis {
- my ($self, $sess, $fh) = @_;
-
- my $twig = $self->twig;
- $twig->parse($fh);
- $twig->purge;
-
- return;
-}
-
-sub finish {
- my ($self, $sess) = @_;
-
- $self->_session(undef);
- $self->SUPER::finish($sess);
-
- return;
-}
-
 =head1 SEE ALSO
 
-L<Test::Valgrind>, L<Test::Valgrind::Tool>, L<Test::Valgrind::Tool::SuppressionsParser>.
+L<Test::Valgrind>, L<Test::Valgrind::Tool>.
 
 L<XML::Twig>.
 
@@ -186,7 +165,7 @@ package Test::Valgrind::Tool::memcheck::Report;
 
 use base qw/Test::Valgrind::Report/;
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 my @kinds = qw/
  InvalidFree
@@ -256,112 +235,3 @@ sub dump {
 
 # End of Test::Valgrind::Tool::memcheck::Report
 
-package Test::Valgrind::Tool::memcheck::Twig;
-
-our $VERSION = '1.02';
-
-use Scalar::Util;
-
-use base qw/XML::Twig Test::Valgrind::Carp/;
-
-BEGIN { XML::Twig->add_options('Stash'); }
-
-my %handlers = (
- '/valgrindoutput/error' => \&handle_error,
-);
-
-sub new {
- my $class = shift;
- $class = ref($class) || $class;
-
- my %args = @_;
- my $stash = delete $args{stash} || { };
-
- my $tool = delete $args{tool};
- $class->_croak('Invalid tool') unless Scalar::Util::blessed($tool)
-                                         and $tool->isa('Test::Valgrind::Tool');
- $stash->{tool} = $tool;
-
- bless $class->XML::Twig::new(
-  elt_class     => __PACKAGE__ . '::Elt',
-  stash         => $stash,
-  twig_roots    => { map { $_ => 1             } keys %handlers },
-  twig_handlers => { map { $_ => $handlers{$_} } keys %handlers },
- ), $class;
-}
-
-sub stash { shift->{Stash} }
-
-sub handle_error {
- my ($twig, $node) = @_;
-
- my $id   = $node->kid('unique')->text;
- my $kind = $node->kid('kind')->text;
-
- my $data;
-
- $data->{what}  = $node->kid('what')->text;
- $data->{stack} = [ map $_->listify_frame,
-                                       $node->kid('stack')->children('frame') ];
-
- for (qw/leakedbytes leakedblocks/) {
-  my $kid = $node->first_child($_);
-  next unless $kid;
-  $data->{$_} = int $kid->text;
- }
-
- if (my $auxwhat = $node->first_child('auxwhat')) {
-  if (my $stack = $auxwhat->next_sibling('stack')) {
-   $data->{auxstack} = [ map $_->listify_frame, $stack->children('frame') ];
-  }
-  $data->{auxwhat} = $auxwhat->text;
- }
-
- if (my $origin = $node->first_child('origin')) {
-  $data->{origwhat}  = $origin->kid('what')->text;
-  $data->{origstack} = [ map $_->listify_frame,
-                                     $origin->kid('stack')->children('frame') ];
- }
-
- my $report = Test::Valgrind::Tool::memcheck::Report->new(
-  kind => $kind,
-  id   => $id,
-  data => $data,
- );
-
- $twig->stash->{tool}->_session->report($report);
-
- $twig->purge;
-}
-
-# End of Test::Valgrind::Tool::memcheck::Twig
-
-package Test::Valgrind::Tool::memcheck::Twig::Elt;
-
-our $VERSION = '1.02';
-
-BEGIN { require XML::Twig; }
-
-use base qw/XML::Twig::Elt Test::Valgrind::Carp/;
-
-sub kid {
- my ($self, $what) = @_;
- my $node = $self->first_child($what);
- $self->_croak("Couldn't get first $what child node") unless $node;
- return $node;
-}
-
-sub listify_frame {
- my ($frame) = @_;
-
- return unless $frame->tag eq 'frame';
-
- return [
-  map {
-   my $x = $frame->first_child($_);
-   $x ? $x->text : undef
-  } qw/ip obj fn dir file line/
- ];
-}
-
-1; # End of Test::Valgrind::Tool::memcheck::Twig::Elt

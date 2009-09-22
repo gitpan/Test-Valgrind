@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 DESCRIPTION
 
@@ -22,19 +22,15 @@ It also acts as a dispatcher between the different components.
 
 =cut
 
-# All these modules are required at configure time.
+use File::Spec   ();
+use Scalar::Util ();
 
-BEGIN {
- require File::Spec;
- require Scalar::Util;
+use Fcntl (); # F_SETFD
+use POSIX (); # SIGKILL
 
- require Fcntl; # F_SETFD
- require POSIX; # SIGKILL
-}
+use version ();
 
 use base qw/Test::Valgrind::Carp/;
-
-use Test::Valgrind::Report;
 
 =head1 METHODS
 
@@ -80,11 +76,6 @@ Defaults to none.
 
 =cut
 
-my $build_version = sub {
- require version;
- version->new($_[0]);
-};
-
 sub new {
  my $class = shift;
  $class = ref($class) || $class;
@@ -92,7 +83,7 @@ sub new {
  my %args = @_;
 
  my @paths;
- my $vg = delete $args{vg};
+ my $vg = delete $args{valgrind};
  if (defined $vg and not ref $vg) {
   @paths = ($vg);
  } else {
@@ -105,7 +96,7 @@ sub new {
  $class->_croak('Empty valgrind candidates list') unless @paths;
 
  my $min_version = delete $args{min_version};
- defined and not ref and $_ = $build_version->($_) for $min_version;
+ defined and not ref and $_ = version->new($_) for $min_version;
 
  my ($valgrind, $version);
  for (@paths) {
@@ -113,7 +104,7 @@ sub new {
   my $ver = qx/$_ --version/;
   if ($ver =~ /^valgrind-(\d+(\.\d+)*)/) {
    if ($min_version) {
-    $version = $build_version->($1);
+    $version = version->new($1);
     next if $version < $min_version;
    } else {
     $version = $1;
@@ -151,7 +142,7 @@ sub version {
  my ($self) = @_;
 
  my $version = $self->{version};
- $self->{version} = $version = $build_version->($version) unless ref $version;
+ $self->{version} = $version = version->new($version) unless ref $version;
 
  return $version;
 }
@@ -201,7 +192,7 @@ sub _run {
 
  $self->command($cmd);
 
- $self->report(Test::Valgrind::Report->new_diag(
+ $self->report($self->report_class->new_diag(
   'Using valgrind ' . $self->version . ' located at ' . $self->valgrind
  ));
 
@@ -210,21 +201,22 @@ sub _run {
  my @supp_args;
  if ($self->do_suppressions) {
   push @supp_args, '--gen-suppressions=all';
- } else {
-  my @supps;
-  if (not $self->no_def_supp) {
-   my $def_supp = $self->def_supp_file;
-   if (defined $def_supp and not -e $def_supp) {
-    $self->report(Test::Valgrind::Report->new_diag("Generating suppressions..."));
-    require Test::Valgrind::Suppressions;
-    Test::Valgrind::Suppressions->generate(
-     tool    => $self->tool,
-     command => $self->command,
-     target  => $def_supp,
-    );
-    $self->_croak('Couldn\'t generate suppressions') unless -e $def_supp;
-    $self->report(Test::Valgrind::Report->new_diag("Suppressions for this perl stored in $def_supp"));
-   }
+ } elsif (not $self->no_def_supp) {
+  my $def_supp = $self->def_supp_file;
+  if (defined $def_supp and not -e $def_supp) {
+   $self->report($self->report_class->new_diag(
+    "Generating suppressions..."
+   ));
+   require Test::Valgrind::Suppressions;
+   Test::Valgrind::Suppressions->generate(
+    tool    => $self->tool,
+    command => $self->command,
+    target  => $def_supp,
+   );
+   $self->_croak('Couldn\'t generate suppressions') unless -e $def_supp;
+   $self->report($self->report_class->new_diag(
+    "Suppressions for this perl stored in $def_supp"
+   ));
   }
   push @supp_args, '--suppressions=' . $_ for $self->suppressions;
  }
@@ -247,13 +239,13 @@ sub _run {
 
   my @args = (
    $self->valgrind,
-   '--log-fd=' . fileno($vwtr),
    $self->tool->args($self),
    @supp_args,
+   $self->parser->args($self, $vwtr),
    $self->command->args($self),
   );
 
-#  $self->report(Test::Valgrind::Report->new_diag("@args"));
+#  $self->report($self->report_class->new_diag("@args"));
 
   exec { $args[0] } @args or $self->_croak("exec @args: $!");
  }
@@ -266,7 +258,7 @@ sub _run {
 
  close $vwtr or $self->_croak("close(\$vwtr): $!");
 
- $self->tool->parse($self, $vrdr);
+ $self->parser->parse($self, $vrdr);
 
  $self->{exit_code} = (waitpid($pid, 0) == $pid) ? $? >> 8 : 255;
 
@@ -285,6 +277,10 @@ Read-only accessor for the C<action> associated to the current run.
 
 Read-only accessor for the C<tool> associated to the current run.
 
+=head2 C<parser>
+
+Read-only accessor for the C<parser> associated to the current tool.
+
 =head2 C<command>
 
 Read-only accessor for the C<command> associated to the current run.
@@ -293,7 +289,7 @@ Read-only accessor for the C<command> associated to the current run.
 
 my @members;
 BEGIN {
- @members = qw/action tool command/;
+ @members = qw/action tool command parser/;
  for (@members) {
   eval "sub $_ { \@_ <= 1 ? \$_[0]->{$_} : (\$_[0]->{$_} = \$_[1]) }";
   die if $@;
@@ -310,7 +306,7 @@ sub do_suppressions { $_[0]->action->do_suppressions }
 
 =head2 C<report_class>
 
-Calls C<< ->action->report_class >> with the current session object as the sole argument.
+Calls C<< ->action->report_class >> with the current session object as the unique argument.
 
 =cut
 
@@ -378,7 +374,7 @@ sub start {
 
  my %args = @_;
 
- for (@members) {
+ for (qw/action tool command/) {
   my $base = 'Test::Valgrind::' . ucfirst;
   my $value = $args{$_};
   $self->_croak("Invalid $_") unless Scalar::Util::blessed($value)
@@ -389,6 +385,7 @@ sub start {
  delete @{$self}{qw/last_status exit_code/};
 
  $self->tool->start($self);
+ $self->parser($self->tool->parser_class($self)->new)->start($self);
  $self->action->start($self);
 
  return;
@@ -402,6 +399,7 @@ Forwards to C<< ->action->abort >> after unshifting the session object to the ar
 
 sub abort {
  my $self = shift;
+
  $self->action->abort($self, @_);
 }
 
@@ -416,8 +414,10 @@ sub report {
 
  return unless defined $report;
 
- $report = $self->command->filter($self, $report);
- return unless defined $report;
+ for my $handler (qw/tool command/) {
+  $report = $self->$handler->filter($self, $report);
+  return unless defined $report;
+ }
 
  $self->action->report($self, $report);
 }
@@ -433,7 +433,9 @@ sub finish {
  my ($self) = @_;
 
  my $action = $self->action;
+
  $action->finish($self);
+ $self->parser->finish($self);
  $self->tool->finish($self);
 
  my $status = $action->status($self);
@@ -454,7 +456,7 @@ sub status { $_[0]->{last_status} }
 
 =head1 SEE ALSO
 
-L<Test::Valgrind>, L<Test::Valgrind::Action>, L<Test::Valgrind::Tool>, L<Test::Valgrind::Command>.
+L<Test::Valgrind>, L<Test::Valgrind::Action>, L<Test::Valgrind::Command>, L<Test::Valgrind::Tool>, L<Test::Valgrind::Parser>.
 
 L<version>, L<File::HomeDir>.
 

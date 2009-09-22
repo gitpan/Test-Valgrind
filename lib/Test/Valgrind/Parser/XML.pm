@@ -1,11 +1,11 @@
-package Test::Valgrind::Carp;
+package Test::Valgrind::Parser::XML;
 
 use strict;
 use warnings;
 
 =head1 NAME
 
-Test::Valgrind::Carp - Carp-like private methods for Test::Valgrind objects.
+Test::Valgrind::Parser::XML - Parse valgrind output as an XML stream.
 
 =head1 VERSION
 
@@ -15,16 +15,37 @@ Version 1.10
 
 our $VERSION = '1.10';
 
-sub _croak {
- shift;
- require Carp;
- local $Carp::CarpLevel = ($Carp::CarpLevel || 0) + 1;
- Carp::croak(@_);
+=head1 DESCRIPTION
+
+This is a base class for L<Test::Valgrind::Parser> objects that can parse C<valgrind>'s XML output.
+
+=cut
+
+use base qw/Test::Valgrind::Parser/;
+
+=head1 METHODS
+
+=head2 C<args $session, $fh>
+
+Returns the arguments needed to tell C<valgrind> to print in XML to the filehandle C<$fh>.
+
+=cut
+
+sub args {
+ my $self = shift;
+ my ($session, $fh) = @_;
+
+ my $fd_opt = $session->version ge '3.5.0' ? '--xml-fd=' : '--log-fd=';
+
+ return (
+  $self->SUPER::args(@_),
+  $fd_opt . fileno($fh),
+ );
 }
 
 =head1 SEE ALSO
 
-L<Test::Valgrind>.
+L<Test::Valgrind>, L<Test::Valgrind::Parser>.
 
 =head1 AUTHOR
 
@@ -41,7 +62,7 @@ I will be notified, and then you'll automatically be notified of progress on you
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Test::Valgrind::Carp
+    perldoc Test::Valgrind::Parser::XML
 
 =head1 COPYRIGHT & LICENSE
 
@@ -51,4 +72,4 @@ This program is free software; you can redistribute it and/or modify it under th
 
 =cut
 
-1; # End of Test::Valgrind::Carp
+1; # End of Test::Valgrind::Parser::XML

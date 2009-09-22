@@ -9,11 +9,11 @@ Test::Valgrind::Action::Test - Test that an analysis didn't generate any error r
 
 =head1 VERSION
 
-Version 1.02
+Version 1.10
 
 =cut
 
-our $VERSION = '1.02';
+our $VERSION = '1.10';
 
 =head1 DESCRIPTION
 
@@ -110,10 +110,10 @@ sub abort {
  my $tb = Test::Builder->new;
  my $plan = $tb->has_plan;
  if (defined $plan) {
-  $tb->BAIL_OUT($@);
+  $tb->BAIL_OUT($msg);
   $self->{status} = 255;
  } else {
-  $tb->skip_all($@);
+  $tb->skip_all($msg);
   $self->{status} = 0;
  }
 

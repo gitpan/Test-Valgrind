@@ -1,21 +1,14 @@
 --- #YAML:1.0
 name:               Test-Valgrind
-version:            1.02
+version:            1.10
 abstract:           Generate suppressions, analyse and test any command with valgrind.
 author:
     - Vincent Pit <perl@profvince.com>
 license:            perl
 distribution_type:  module
 configure_requires:
-    base:                 0
-    Carp:                 0
-    Config:               0
     ExtUtils::MakeMaker:  0
-    Fcntl:                0
     File::Spec:           0
-    POSIX:                0
-    Scalar::Util:         0
-    version:              0
 build_requires:
     base:                 0
     Carp:                 0
@@ -28,6 +21,7 @@ build_requires:
     File::Spec:           0
     File::Temp:           0.14
     Filter::Util::Call:   0
+    List::Util:           0
     Perl::Destruct::Level:  0
     POSIX:                0
     Scalar::Util:         0
@@ -46,11 +40,13 @@ requires:
     File::Spec:           0
     File::Temp:           0.14
     Filter::Util::Call:   0
+    List::Util:           0
     perl:                 5.006
     Perl::Destruct::Level:  0
     POSIX:                0
     Scalar::Util:         0
     Test::Builder:        0
+    Test::More:           0
     version:              0
     XML::Twig:            0
 resources:
@@ -62,7 +58,7 @@ no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.50
+generated_by:       ExtUtils::MakeMaker version 6.54
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4

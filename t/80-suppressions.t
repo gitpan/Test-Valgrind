@@ -3,11 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More;
 
 use Test::Valgrind::Command;
 use Test::Valgrind::Tool;
-use Test::Valgrind::Action;
 use Test::Valgrind::Session;
 
 my $cmd = Test::Valgrind::Command->new(
@@ -19,9 +18,16 @@ my $tool = Test::Valgrind::Tool->new(
  tool => 'memcheck',
 );
 
-my $sess = Test::Valgrind::Session->new(
+my $sess = eval { Test::Valgrind::Session->new(
  min_version => $tool->requires_version,
-);
+) };
+
+if (my $err = $@) {
+ $err =~ s/^(Empty valgrind candidates list|No appropriate valgrind executable could be found)\s+at.*/$1/;
+ plan skip_all => $err;
+} else {
+ plan tests => 4;
+}
 
 $sess->command($cmd);
 $sess->tool($tool);
