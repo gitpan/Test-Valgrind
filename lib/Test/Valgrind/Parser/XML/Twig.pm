@@ -3,7 +3,24 @@ package Test::Valgrind::Parser::XML::Twig;
 use strict;
 use warnings;
 
-our $VERSION = '1.10';
+=head1 NAME
+
+Test::Valgrind::Parser::XML::Twig - Parse valgrind XML output with XML::Twig.
+
+=head1 VERSION
+
+Version 1.11
+
+=cut
+
+our $VERSION = '1.11';
+
+=head1 DESCRIPTION
+
+This subclass of L<XML::Twig> and L<Test::Valgrind::Parser::XML> encapsulates an L<XML::Twig> parser inside the L<Test::Valgrind::Parser> framework.
+It is able to parse the XML output from C<valgrind> up to protocol version 4 and to generate the appropriate reports accordingly.
+
+=cut
 
 use Scalar::Util ();
 
@@ -15,6 +32,10 @@ my %handlers = (
  '/valgrindoutput/protocolversion' => \&handle_version,
  '/valgrindoutput/error'           => \&handle_error,
 );
+
+=head1 METHODS
+
+=cut
 
 sub new {
  my $class = shift;
@@ -32,6 +53,13 @@ sub new {
 }
 
 sub stash { shift->{Stash} }
+
+=head2 C<protocol_version>
+
+The version of the protocol that the current stream is conforming to.
+It is reset before and after the parsing phase, so it's effectively only available from inside L</parse>.
+
+=cut
 
 eval "sub $_ { \@_ <= 1 ? \$_[0]->{$_} : (\$_[0]->{$_} = \$_[1]) }"
                                               for qw/_session protocol_version/;
@@ -51,8 +79,12 @@ sub start {
 sub parse {
  my ($self, $sess, $fh) = @_;
 
+ $self->protocol_version(undef);
+
  $self->XML::Twig::parse($fh);
  $self->purge;
+
+ $self->protocol_version(undef);
 
  return;
 }
@@ -123,11 +155,42 @@ sub handle_error {
  $twig->purge;
 }
 
+=head1 SEE ALSO
+
+L<Test::Valgrind>, L<Test::Valgrind::Parser>, L<Test::Valgrind::Parser::XML>.
+
+L<XML::Twig>.
+
+=head1 AUTHOR
+
+Vincent Pit, C<< <perl at profvince.com> >>, L<http://www.profvince.com>.
+
+You can contact me by mail or on C<irc.perl.org> (vincent).
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-test-valgrind at rt.cpan.org>, or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind>.
+I will be notified, and then you'll automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Test::Valgrind::Parser::XML::Twig
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Vincent Pit, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=cut
+
 # End of Test::Valgrind::Parser::XML::Twig
 
 package Test::Valgrind::Parser::XML::Twig::Elt;
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 BEGIN { require XML::Twig; }
 

@@ -9,15 +9,15 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
-This tool parses the XML output of a C<memcheck> run with L<XML::Twig>.
+This class contains the information required by the session for running the C<memcheck> tool.
 
 =cut
 
@@ -75,7 +75,7 @@ sub suppressions_tag { 'memcheck-' . $_[1]->version }
 
 =head2 C<parser_class $session>
 
-This tool uses a C<Test::Valgrind::Parser::XML::Twig> parser in analysis mode, and a C<Test::Valgrind::Parser::Suppressions::Text> parser in suppressions mode.
+This tool uses a L<Test::Valgrind::Parser::XML::Twig> parser in analysis mode, and a L<Test::Valgrind::Parser::Suppressions::Text> parser in suppressions mode.
 
 =cut
 
@@ -94,7 +94,7 @@ sub parser_class {
 
 =head2 C<report_class $session>
 
-This tool emits C<Test::Valgrind::Tool::memcheck::Report> object reports in analysis mode.
+This tool emits C<Test::Valgrind::Tool::memcheck::Report> object reports in analysis mode, and C<Test::Valgrind::Report::Suppressions> object reports in suppressions mode.
 
 =cut
 
@@ -118,10 +118,8 @@ sub args {
   '--error-limit=yes',
  );
 
- unless ($sess->do_suppressions) {
-  push @args, '--track-origins=yes' if $sess->version ge '3.4.0';
-  push @args, '--xml=yes';
- }
+ push @args, '--track-origins=yes' if  $sess->version ge '3.4.0'
+                                   and not $sess->do_suppressions;
 
  push @args, $self->SUPER::args(@_);
 
@@ -131,8 +129,6 @@ sub args {
 =head1 SEE ALSO
 
 L<Test::Valgrind>, L<Test::Valgrind::Tool>.
-
-L<XML::Twig>.
 
 =head1 AUTHOR
 
@@ -165,7 +161,7 @@ package Test::Valgrind::Tool::memcheck::Report;
 
 use base qw/Test::Valgrind::Report/;
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 my @kinds = qw/
  InvalidFree

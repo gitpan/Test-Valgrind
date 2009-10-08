@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Test-Valgrind
-version:            1.10
+version:            1.11
 abstract:           Generate suppressions, analyse and test any command with valgrind.
 author:
     - Vincent Pit <perl@profvince.com>
@@ -58,10 +58,11 @@ no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.54
+generated_by:       ExtUtils::MakeMaker version 6.55_02
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4
+dynamic_config:     1
 recommends:
     DynaLoader:  0
     XSLoader:    0

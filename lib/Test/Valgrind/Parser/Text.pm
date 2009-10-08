@@ -9,11 +9,11 @@ Test::Valgrind::Parser::Text - Parse valgrind output as a text stream.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,7 @@ use base qw/Test::Valgrind::Parser/;
 
 =head2 C<args $session, $fh>
 
-Returns the arguments needed to tell C<valgrind> to print to the filehandle C<$fh>.
+Returns the arguments needed to tell C<valgrind> to print in text to the filehandle C<$fh>.
 
 =cut
 

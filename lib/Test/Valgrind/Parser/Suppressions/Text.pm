@@ -9,15 +9,15 @@ Test::Valgrind::Parser::Suppressions::Text - Parse valgrind suppressions output 
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
-This is a L<Test::Valgrind::Parser> object that can extract suppressions from C<valgrind>'s text output.
+This is a L<Test::Valgrind::Parser::Text> object that can extract suppressions from C<valgrind>'s text output.
 
 =cut
 
@@ -33,12 +33,6 @@ Their C<data> member contains the raw text of the suppression.
 =cut
 
 sub report_class { 'Test::Valgrind::Report::Suppressions' }
-
-=head2 C<parse $session, $fh>
-
-Parses the filehandle C<$fh> fed with the output of F<valgrind --gen-suppressions=all> and sends a report to the session C<$session> for each suppression.
-
-=cut
 
 sub parse {
  my ($self, $sess, $fh) = @_;

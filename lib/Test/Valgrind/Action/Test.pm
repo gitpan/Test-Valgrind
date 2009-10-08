@@ -9,11 +9,11 @@ Test::Valgrind::Action::Test - Test that an analysis didn't generate any error r
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 

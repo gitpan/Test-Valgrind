@@ -3,7 +3,7 @@ NAME
     with valgrind.
 
 VERSION
-    Version 1.10
+    Version 1.11
 
 SYNOPSIS
         # From the command-line
@@ -129,14 +129,14 @@ CAVEATS
     the "diag" option, in which case it will be reprinted as diagnostics.
 
 DEPENDENCIES
-    Valgrind 3.1.0 (<http://valgrind.org>).
-
     XML::Twig, version, File::HomeDir, Env::Sanctify, Perl::Destruct::Level.
 
 SEE ALSO
     All the "Test::Valgrind::*" API, including Test::Valgrind::Command,
     Test::Valgrind::Tool, Test::Valgrind::Action and
     Test::Valgrind::Session.
+
+    The valgrind(1) man page.
 
     Test::LeakTrace.
 

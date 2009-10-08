@@ -9,11 +9,11 @@ Test::Valgrind::Command::PerlScript - A Test::Valgrind command that invokes a pe
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 

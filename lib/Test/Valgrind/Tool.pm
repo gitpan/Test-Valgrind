@@ -9,11 +9,11 @@ Test::Valgrind::Tool - Base class for Test::Valgrind tools.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
@@ -120,7 +120,7 @@ Defaults to set L<Test::Valgrind::Component/started>.
 
 =head2 C<filter $session, $report>
 
-The <$session> calls this method after receiving a report from the parser and before letting the command filter it.
+The C<$session> calls this method after receiving a report from the parser and before letting the command filter it.
 You can either return a mangled C<$report> (which does not need to be a clone of the original) or C<undef> if you want the action to ignore it completely.
 
 Defaults to the identity function.

@@ -9,11 +9,17 @@ Test::Valgrind::Component - Base class for Test::Valgrind components.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
+
+=head1 DESCRIPTION
+
+This class is the base for all others that act as components that can be started and stopped.
+
+=cut
 
 use Scalar::Util ();
 

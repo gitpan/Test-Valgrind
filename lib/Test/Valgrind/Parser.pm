@@ -9,11 +9,11 @@ Test::Valgrind::Parser - Base class for Test::Valgrind parsers.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
@@ -27,9 +27,19 @@ use base qw/Test::Valgrind::Component Test::Valgrind::Carp/;
 
 =head2 C<new>
 
+The parser constructor, called without arguments.
+
+Defaults to L<Test::Valgrind::Component/new>.
+
+=head2 C<start $session>
+
+Called when the C<$session> starts.
+
+Defaults to set L<Test::Valgrind::Component/started>.
+
 =head2 C<args $session, $fh>
 
-Returns the list of parser-specific arguments that are to be passed to C<valgrind>.
+Returns the list of parser-specific arguments that are to be passed to the C<valgrind> process spawned by the session C<$session> and whose output will be captured by the filehandle C<$fh>.
 
 Defaults to the empty list.
 
@@ -39,17 +49,13 @@ sub args { }
 
 =head2 C<parse $session, $fh>
 
+Parse the output of the C<valgrind> process attached to the session C<$session> received through the filehandle C<$fh>.
+
 This method must be implemented when subclassing.
 
 =cut
 
 sub parse;
-
-=head2 C<start $session>
-
-Called when the C<$session> starts.
-
-Defaults to set L<Test::Valgrind::Component/started>.
 
 =head2 C<finish $session>
 

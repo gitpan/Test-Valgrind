@@ -41,6 +41,13 @@ if ($has_cc) {
  print "none\n";
 }
 
+my $dist = 'Test-Valgrind';
+
+(my $name = $dist) =~ s{-}{::}g;
+
+(my $file = $dist) =~ s{-}{/}g;
+$file = "lib/$file.pm";
+
 my %PREREQ_PM = (
  'Carp'                  => 0,
  'Digest::MD5'           => 0,
@@ -62,8 +69,6 @@ my %PREREQ_PM = (
  'version'               => 0,
 );
 
-my $dist = 'Test-Valgrind';
-
 my %META = (
  configure_requires => {
   'File::Spec'          => 0,
@@ -78,6 +83,7 @@ my %META = (
   'DynaLoader' => 0,
   'XSLoader'   => 0,
  },
+ dynamic_config => 1,
  resources => {
   bugtracker => "http://rt.cpan.org/NoAuth/ReportBug.html?Queue=$dist",
   homepage   => "http://search.cpan.org/dist/$dist/",
@@ -87,21 +93,21 @@ my %META = (
 );
 
 WriteMakefile(
-    NAME             => 'Test::Valgrind',
-    AUTHOR           => 'Vincent Pit <perl@profvince.com>',
-    LICENSE          => 'perl',
-    VERSION_FROM     => 'lib/Test/Valgrind.pm',
-    ABSTRACT_FROM    => 'lib/Test/Valgrind.pm',
-    OPTIMIZE         => '-g',
-    C                => \@C,
-    PREREQ_PM        => \%PREREQ_PM,
-    MIN_PERL_VERSION => 5.006,
-    META_MERGE       => \%META,
-    dist             => {
-        PREOP    => 'pod2text lib/Test/Valgrind.pm > $(DISTVNAME)/README',
-        COMPRESS => 'gzip -9f', SUFFIX => 'gz',
-    },
-    clean            => {
-        FILES => "$dist-* Makefile.bak *.gcov *.gcda *.gcno cover_db Debian_CPANTS.txt"
-    },
+ NAME             => $name,
+ AUTHOR           => 'Vincent Pit <perl@profvince.com>',
+ LICENSE          => 'perl',
+ VERSION_FROM     => $file,
+ ABSTRACT_FROM    => $file,
+ OPTIMIZE         => '-g',
+ C                => \@C,
+ PREREQ_PM        => \%PREREQ_PM,
+ MIN_PERL_VERSION => 5.006,
+ META_MERGE       => \%META,
+ dist             => {
+  PREOP    => "pod2text $file > \$(DISTVNAME)/README",
+  COMPRESS => 'gzip -9f', SUFFIX => 'gz',
+ },
+ clean            => {
+  FILES => "$dist-* *.gcov *.gcda *.gcno cover_db Debian_CPANTS.txt"
+ },
 );

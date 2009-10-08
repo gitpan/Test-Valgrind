@@ -9,11 +9,11 @@ Test::Valgrind::Parser::XML - Parse valgrind output as an XML stream.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
@@ -39,6 +39,7 @@ sub args {
 
  return (
   $self->SUPER::args(@_),
+  '--xml=yes',
   $fd_opt . fileno($fh),
  );
 }

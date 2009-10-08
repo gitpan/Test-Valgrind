@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
@@ -304,6 +304,14 @@ Forwards to C<< ->action->do_suppressions >>.
 
 sub do_suppressions { $_[0]->action->do_suppressions }
 
+=head2 C<parser_class>
+
+Calls C<< ->tool->parser_class >> with the current session object as the unique argument.
+
+=cut
+
+sub parser_class { $_[0]->tool->parser_class($_[0]) }
+
 =head2 C<report_class>
 
 Calls C<< ->action->report_class >> with the current session object as the unique argument.
@@ -385,7 +393,7 @@ sub start {
  delete @{$self}{qw/last_status exit_code/};
 
  $self->tool->start($self);
- $self->parser($self->tool->parser_class($self)->new)->start($self);
+ $self->parser($self->parser_class->new)->start($self);
  $self->action->start($self);
 
  return;

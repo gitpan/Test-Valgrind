@@ -9,11 +9,11 @@ Test::Valgrind - Generate suppressions, analyse and test any command with valgri
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 SYNOPSIS
 
@@ -308,13 +308,13 @@ What your tests output to C<STDOUT> and C<STDERR> is eaten unless you pass the C
 
 =head1 DEPENDENCIES
 
-Valgrind 3.1.0 (L<http://valgrind.org>).
-
 L<XML::Twig>, L<version>, L<File::HomeDir>, L<Env::Sanctify>, L<Perl::Destruct::Level>.
 
 =head1 SEE ALSO
 
 All the C<Test::Valgrind::*> API, including L<Test::Valgrind::Command>, L<Test::Valgrind::Tool>, L<Test::Valgrind::Action> and L<Test::Valgrind::Session>.
+
+The C<valgrind(1)> man page.
 
 L<Test::LeakTrace>.
 

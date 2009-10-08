@@ -9,11 +9,19 @@ Test::Valgrind::Carp - Carp-like private methods for Test::Valgrind objects.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
+
+=head1 DESCRIPTION
+
+This class only provides a C<_croak> method that lazily requires L<Carp> and then croaks with the supplied message.
+
+The class should not be used outside from L<Test::Valgrind> and may be removed without notice.
+
+=cut
 
 sub _croak {
  shift;

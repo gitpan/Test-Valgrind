@@ -9,11 +9,11 @@ Test::Valgrind::Command - Base class for Test::Valgrind commands.
 
 =head1 VERSION
 
-Version 1.10
+Version 1.11
 
 =cut
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
@@ -100,7 +100,7 @@ sub suppressions_tag;
 
 =head2 C<filter $session, $report>
 
-The <$session> calls this method after receiving a report from the tool and before forwarding it to the action.
+The C<$session> calls this method after receiving a report from the tool and before forwarding it to the action.
 You can either return a mangled C<$report> (which does not need to be a clone of the original) or C<undef> if you want the action to ignore it completely.
 
 Defaults to the identity function.

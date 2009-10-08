@@ -1,5 +1,10 @@
 Revision history for Test-Valgrind
 
+1.11    2009-10-08 20:55 UTC
+        + Doc : Completion and improvements.
+        + Fix : Work around Kwalitee test misfailures.
+        + Upd : Freshen Makefile.PL.
+
 1.10    2009-09-22 18:45 UTC
         + Chg : valgrind is no longer required to be installed before installing
                 this module.
