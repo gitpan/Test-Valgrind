@@ -9,11 +9,11 @@ Test::Valgrind::Parser - Base class for Test::Valgrind parsers.
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 

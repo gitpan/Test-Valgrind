@@ -9,11 +9,11 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 
@@ -161,7 +161,7 @@ package Test::Valgrind::Tool::memcheck::Report;
 
 use base qw/Test::Valgrind::Report/;
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 my @kinds = qw/
  InvalidFree
@@ -216,9 +216,9 @@ sub dump {
    my ($ip, $obj, $fn, $dir, $file, $line) = map { (defined) ? $_ : '?' } @$_;
    my $frame;
    if ($fn eq '?' and $obj eq '?') {
-    $ip =~ s/^0x//g;
-    $ip = hex $ip;
-    $frame = sprintf "0x%0${pad}X", $ip;
+    $ip =~ s/^0x//gi;
+    my $l = length $ip;
+    $frame = '0x' . ($l < $pad ? ('0' x ($pad - $l)) : '') . uc($ip);
    } else {
     $frame = sprintf '%s (%s) [%s:%s]', $fn, $obj, $file, $line;
    }

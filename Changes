@@ -1,5 +1,12 @@
 Revision history for Test-Valgrind
 
+1.12    2009-11-29 16:45 UTC
+        + Doc : The front documentation in Test::Valgrind was improved.
+        + Fix : Don't install Valgrind.so, as it's only used for testing.
+        + Fix : "Non-portable hex number" warnings.
+        + Fix : Old versions of valgrind could leave some Z-encoded symbols in
+                the stack traces. We now make sure they're always decoded.
+
 1.11    2009-10-08 20:55 UTC
         + Doc : Completion and improvements.
         + Fix : Work around Kwalitee test misfailures.

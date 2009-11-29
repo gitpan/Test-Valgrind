@@ -9,17 +9,19 @@ Test::Valgrind::Parser::Suppressions::Text - Parse valgrind suppressions output 
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 
 This is a L<Test::Valgrind::Parser::Text> object that can extract suppressions from C<valgrind>'s text output.
 
 =cut
+
+use Test::Valgrind::Suppressions;
 
 use base qw/Test::Valgrind::Parser::Text Test::Valgrind::Carp/;
 
@@ -44,7 +46,6 @@ sub parse {
   s/^\s*#\s//;        # Strip comments
 
   next if /^==/;      # Valgrind info line
-  next if /valgrind/; # and /\Q$file\E/;
 
   s/^\s*//;           # Strip leading spaces
   s/<[^>]+>//;        # Strip tags
@@ -54,18 +55,19 @@ sub parse {
   if ($_ eq '{') {      # A suppression block begins
    $in = 1;
   } elsif ($_ eq '}') { # A suppression block ends
-   # With valgrind 3.4.0, we can replace unknown series of frames by '...'
-   if ($sess->version ge '3.4.0') {
-    my $unknown_tail;
-    ++$unknown_tail while $s =~ s/(\n)\s*obj:\*\s*$/$1/;
-    $s .= "...\n" if $unknown_tail;
-   }
-
+   $s = Test::Valgrind::Suppressions->strip_tail($sess, $s); # Strip the tail
    push @supps, $s;     # Add the suppression that just ended to the list
    $s  = '';            # Reset the state
    $in = 0;
   } elsif ($in) {       # We're inside a suppresion block
-   $s .= "$_\n";        # Append the current line to the state
+   if (/^fun\s*:\s*(.*)/) {
+    # Sometimes valgrind seems to forget to Z-demangle the symbol names.
+    # Make sure it's done and append the result to the state.
+    my $sym = $1;
+    $s .= 'fun:' . Test::Valgrind::Suppressions->maybe_z_demangle($sym) . "\n";
+   } else {
+    $s .= "$_\n";
+   }
   }
  }
 

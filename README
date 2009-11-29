@@ -3,7 +3,7 @@ NAME
     with valgrind.
 
 VERSION
-    Version 1.11
+    Version 1.12
 
 SYNOPSIS
         # From the command-line
@@ -24,17 +24,21 @@ SYNOPSIS
 DESCRIPTION
     This module is a front-end to the "Test::Valgrind::*" API that lets you
     run Perl code through the "memcheck" tool of the "valgrind" memory
-    debugger, to test it for memory errors and leaks. If they aren't
-    available yet, it will first generate suppressions for the current
-    "perl" interpreter and store them in the portable flavour of
+    debugger, to test for memory errors and leaks. If they aren't available
+    yet, it will first generate suppressions for the current "perl"
+    interpreter and store them in the portable flavour of
     ~/.perl/Test-Valgrind/suppressions/$VERSION. The actual run will then
     take place, and tests will be passed or failed according to the result
     of the analysis.
 
-    The complete API is much more versatile than this. It allows you to run
-    *any* executable under valgrind, generate the corresponding suppressions
-    and convert the analysis output to TAP so that it can be incorporated
-    into your project's testsuite.
+    The complete API is much more versatile than this. By declaring an
+    appropriate Test::Valgrind::Command class, you can run any executable
+    (that is, not only Perl scripts) under valgrind, generate the
+    corresponding suppressions on-the-fly and convert the analysis result to
+    TAP output so that it can be incorporated into your project's testsuite.
+    If you're not interested in producing TAP, you can output the results in
+    whatever format you like (for example HTML pages) by defining your own
+    Test::Valgrind::Action class.
 
     Due to the nature of perl's memory allocator, this module can't track
     leaks of Perl objects. This includes non-mortalized scalars and memory
@@ -103,10 +107,16 @@ METHODS
     In the parent process, "import" calls "analyse" with the arguments it
     received itself - except that if no "file" option was supplied, it tries
     to pick the first caller context that looks like a script. When the
-    analyse ends, it exits with the status that was returned.
+    analysis ends, it exits with the status returned by the action (for the
+    default TAP-generator action, it's the number of failed tests).
 
     In the child process, it just "return"s so that the calling code is
-    actually run under "valgrind".
+    actually run under "valgrind", albeit two side-effects :
+
+    *   Perl::Destruct::Level is loaded and the destruction level is set to
+        3.
+
+    *   Autoflush on "STDOUT" is turned on.
 
 VARIABLES
   $dl_unload
@@ -118,9 +128,9 @@ VARIABLES
 
 CAVEATS
     Perl 5.8 is notorious for leaking like there's no tomorrow, so the
-    suppressions are very likely not to be very accurate on it. Anyhow,
-    results will most likely be better if your perl is built with debugging
-    enabled. Using the latest "valgrind" available will also help.
+    suppressions are very likely not to be complete on it. You also have a
+    better chance to get more accurate results if your perl is built with
+    debugging enabled. Using the latest "valgrind" available will also help.
 
     This module is not really secure. It's definitely not taint safe. That
     shouldn't be a problem for test files.
@@ -160,11 +170,16 @@ SUPPORT
         perldoc Test::Valgrind
 
 ACKNOWLEDGEMENTS
-    RafaÃ«l Garcia-Suarez, for writing and instructing me about the
-    existence of Perl::Destruct::Level (Elizabeth Mattijsen is a close
-    second).
+    Rafaël Garcia-Suarez, for writing and instructing me about the existence
+    of Perl::Destruct::Level (Elizabeth Mattijsen is a close second).
 
     H.Merijn Brand, for daring to test this thing.
+
+    David Cantrell, for providing shell access to one of his smokers where
+    the tests were failing.
+
+    The debian-perl team, for offering all the feedback they could regarding
+    the build issues they met.
 
     All you people that showed interest in this module, which motivated me
     into completely rewriting it.

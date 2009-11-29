@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Test-Valgrind
-version:            1.11
+version:            1.12
 abstract:           Generate suppressions, analyse and test any command with valgrind.
 author:
     - Vincent Pit <perl@profvince.com>

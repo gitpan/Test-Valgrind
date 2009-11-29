@@ -9,11 +9,11 @@ Test::Valgrind::Suppressions - Generate suppressions for given tool and command.
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 
@@ -86,6 +86,77 @@ sub generate {
  $status = 255 unless defined $status;
 
  return $status;
+}
+
+=head2 C<strip_tail $session, $suppression>
+
+Removes all wildcard frames at the end of the suppression.
+Moreover, C<'...'> is appended when C<valgrind> C<3.4.0> or higher is used.
+Returns the mangled suppression.
+
+=cut
+
+sub strip_tail {
+ shift;
+
+ my ($sess, $supp) = @_;
+
+ 1 while $supp =~ s/[^\r\n]*:\s*\*\s*$//;
+ # With valgrind 3.4.0, we can replace unknown series of frames by '...'
+ if ($sess->version ge '3.4.0') {
+  1 while $supp =~ s/[^\r\n]*\.{3}\s*$//;
+  $supp .= "...\n";
+ }
+
+ $supp;
+}
+
+=head2 C<maybe_z_demangle $symbol>
+
+If C<$symbol> is Z-encoded as described in C<valgrind>'s F<include/pub_tool_redir.h>, extract and decode its function name part.
+Otherwise, C<$symbol> is returned as is.
+
+This routine follows C<valgrind>'s F<coregrind/m_demangle/demangle.c:maybe_Z_demangle>.
+
+=cut
+
+my %z_escapes = (
+ a => '*',
+ c => ':',
+ d => '.',
+ h => '-',
+ p => '+',
+ s => ' ',
+ u => '_',
+ A => '@',
+ D => '$',
+ L => '(',
+ R => ')',
+ Z => 'Z',
+);
+
+sub maybe_z_demangle {
+ my ($self, $sym) = @_;
+
+ $sym =~ s/^_vg[rwn]Z([ZU])_// or return $sym;
+
+ my $fn_is_encoded = $1 eq 'Z';
+
+ $sym =~ /^VG_Z_/ and $self->_croak('Symbol with a "VG_Z_" prefix is invalid');
+ $sym =~ s/^[^_]*_//
+                   or $self->_croak('Symbol doesn\'t contain a function name');
+
+ if ($fn_is_encoded) {
+  $sym =~ s/Z(.)/
+   my $c = $z_escapes{$1};
+   $self->_croak('Invalid escape sequence') unless defined $c;
+   $c;
+  /ge;
+ }
+
+ $self->_croak('Empty symbol') unless length $sym;
+
+ return $sym;
 }
 
 =head1 SEE ALSO

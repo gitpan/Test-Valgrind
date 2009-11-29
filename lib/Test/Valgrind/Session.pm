@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 
@@ -218,7 +218,11 @@ sub _run {
     "Suppressions for this perl stored in $def_supp"
    ));
   }
-  push @supp_args, '--suppressions=' . $_ for $self->suppressions;
+  for ($self->suppressions) {
+   next unless -e $_;
+   $self->report($self->report_class->new_diag("Using suppression file $_"));
+   push @supp_args, "--suppressions=$_";
+  }
  }
 
  pipe my $vrdr, my $vwtr or $self->_croak("pipe(\$vrdr, \$vwtr): $!");
@@ -314,7 +318,7 @@ sub parser_class { $_[0]->tool->parser_class($_[0]) }
 
 =head2 C<report_class>
 
-Calls C<< ->action->report_class >> with the current session object as the unique argument.
+Calls C<< ->tool->report_class >> with the current session object as the unique argument.
 
 =cut
 

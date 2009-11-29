@@ -9,11 +9,11 @@ Test::Valgrind - Generate suppressions, analyse and test any command with valgri
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 SYNOPSIS
 
@@ -34,15 +34,17 @@ our $VERSION = '1.11';
 
 =head1 DESCRIPTION
 
-This module is a front-end to the C<Test::Valgrind::*> API that lets you run Perl code through the C<memcheck> tool of the C<valgrind> memory debugger, to test it for memory errors and leaks.
+This module is a front-end to the C<Test::Valgrind::*> API that lets you run Perl code through the C<memcheck> tool of the C<valgrind> memory debugger, to test for memory errors and leaks.
 If they aren't available yet, it will first generate suppressions for the current C<perl> interpreter and store them in the portable flavour of F<~/.perl/Test-Valgrind/suppressions/$VERSION>.
 The actual run will then take place, and tests will be passed or failed according to the result of the analysis.
 
 The complete API is much more versatile than this.
-It allows you to run I<any> executable under valgrind, generate the corresponding suppressions and convert the analysis output to TAP so that it can be incorporated into your project's testsuite.
+By declaring an appropriate L<Test::Valgrind::Command> class, you can run any executable (that is, not only Perl scripts) under valgrind, generate the corresponding suppressions on-the-fly and convert the analysis result to TAP output so that it can be incorporated into your project's testsuite.
+If you're not interested in producing TAP, you can output the results in whatever format you like (for example HTML pages) by defining your own L<Test::Valgrind::Action> class.
 
 Due to the nature of perl's memory allocator, this module can't track leaks of Perl objects.
-This includes non-mortalized scalars and memory cycles. However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>.
+This includes non-mortalized scalars and memory cycles.
+However, it can track leaks of chunks of memory allocated in XS extensions with C<Newx> and friends or C<malloc>.
 As such, it's complementary to the other very good leak detectors listed in the L</SEE ALSO> section.
 
 =head1 METHODS
@@ -195,9 +197,21 @@ sub analyse {
 =head2 C<import [ %options ]>
 
 In the parent process, L</import> calls L</analyse> with the arguments it received itself - except that if no C<file> option was supplied, it tries to pick the first caller context that looks like a script.
-When the analyse ends, it exits with the status that was returned.
+When the analysis ends, it exits with the status returned by the action (for the default TAP-generator action, it's the number of failed tests).
 
-In the child process, it just C<return>s so that the calling code is actually run under C<valgrind>.
+In the child process, it just C<return>s so that the calling code is actually run under C<valgrind>, albeit two side-effects :
+
+=over 4
+
+=item *
+
+L<Perl::Destruct::Level> is loaded and the destruction level is set to C<3>.
+
+=item *
+
+Autoflush on C<STDOUT> is turned on.
+
+=back
 
 =cut
 
@@ -300,9 +314,13 @@ END {
 
 =head1 CAVEATS
 
-Perl 5.8 is notorious for leaking like there's no tomorrow, so the suppressions are very likely not to be very accurate on it. Anyhow, results will most likely be better if your perl is built with debugging enabled. Using the latest C<valgrind> available will also help.
+Perl 5.8 is notorious for leaking like there's no tomorrow, so the suppressions are very likely not to be complete on it.
+You also have a better chance to get more accurate results if your perl is built with debugging enabled.
+Using the latest C<valgrind> available will also help.
 
-This module is not really secure. It's definitely not taint safe. That shouldn't be a problem for test files.
+This module is not really secure.
+It's definitely not taint safe.
+That shouldn't be a problem for test files.
 
 What your tests output to C<STDOUT> and C<STDERR> is eaten unless you pass the C<diag> option, in which case it will be reprinted as diagnostics.
 
@@ -339,9 +357,13 @@ You can find documentation for this module with the perldoc command.
 
 =head1 ACKNOWLEDGEMENTS
 
-Rafaël Garcia-Suarez, for writing and instructing me about the existence of L<Perl::Destruct::Level> (Elizabeth Mattijsen is a close second).
+RafaE<euml>l Garcia-Suarez, for writing and instructing me about the existence of L<Perl::Destruct::Level> (Elizabeth Mattijsen is a close second).
 
 H.Merijn Brand, for daring to test this thing.
+
+David Cantrell, for providing shell access to one of his smokers where the tests were failing.
+
+The debian-perl team, for offering all the feedback they could regarding the build issues they met.
 
 All you people that showed interest in this module, which motivated me into completely rewriting it.
 

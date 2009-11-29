@@ -9,11 +9,11 @@ Test::Valgrind::Command::Perl - A Test::Valgrind command that invokes perl.
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 
@@ -23,6 +23,8 @@ It handles the suppression generation and sets the main command-line flags.
 =cut
 
 use Env::Sanctify ();
+
+use Test::Valgrind::Suppressions;
 
 use base qw/Test::Valgrind::Command Test::Valgrind::Carp/;
 
@@ -145,7 +147,7 @@ Returns an L<Env::Sanctify> object that sets the environment variables C<PERL_DE
 sub env {
  Env::Sanctify->sanctify(
   env => {
-   PERL_DESTRUCT_LEVEL => 2,
+   PERL_DESTRUCT_LEVEL => 3,
    PERL_DL_NONLAZY     => 1,
   },
  );
@@ -176,7 +178,8 @@ sub filter {
                 or not $report->isa('Test::Valgrind::Report::Suppressions');
 
  my $data = $report->data;
- $data =~ s/^[^\r\n]*\bPerl_runops_(?:standard|debug)\b.*//ms;
+ $data =~ s/[^\r\n]*\bPerl_runops_(?:standard|debug)\b.*//s;
+ $data = Test::Valgrind::Suppressions->strip_tail($session, $data);
 
  $report->new(
   id   => $report->id,

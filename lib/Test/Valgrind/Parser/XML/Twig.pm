@@ -9,11 +9,11 @@ Test::Valgrind::Parser::XML::Twig - Parse valgrind XML output with XML::Twig.
 
 =head1 VERSION
 
-Version 1.11
+Version 1.12
 
 =cut
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =head1 DESCRIPTION
 
@@ -190,7 +190,7 @@ This program is free software; you can redistribute it and/or modify it under th
 
 package Test::Valgrind::Parser::XML::Twig::Elt;
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 BEGIN { require XML::Twig; }
 
