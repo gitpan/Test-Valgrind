@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -30,7 +30,7 @@ use POSIX (); # SIGKILL
 
 use version ();
 
-use base qw/Test::Valgrind::Carp/;
+use base qw<Test::Valgrind::Carp>;
 
 =head1 METHODS
 
@@ -153,7 +153,7 @@ Read-only accessor for the C<no_def_supp> option.
 
 =cut
 
-eval "sub $_ { \$_[0]->{$_} }" for qw/valgrind no_def_supp/;
+eval "sub $_ { \$_[0]->{$_} }" for qw<valgrind no_def_supp>;
 
 =head2 C<extra_supps>
 
@@ -177,7 +177,7 @@ sub run {
  my %args = @_;
 
  $self->start(%args);
- my $guard = bless sub { $self->finish } => 'Test::Valgrind::Session::Guard';
+ my $guard = Test::Valgrind::Session::Guard->new(sub { $self->finish });
 
  $self->_run($args{command});
 }
@@ -271,7 +271,9 @@ sub _run {
  return;
 }
 
-sub Test::Valgrind::Session::Guard::DESTROY { $_[0]->() }
+sub Test::Valgrind::Session::Guard::new     { bless \($_[1]), $_[0] }
+
+sub Test::Valgrind::Session::Guard::DESTROY { ${$_[0]}->() }
 
 =head2 C<action>
 
@@ -293,7 +295,7 @@ Read-only accessor for the C<command> associated to the current run.
 
 my @members;
 BEGIN {
- @members = qw/action tool command parser/;
+ @members = qw<action tool command parser>;
  for (@members) {
   eval "sub $_ { \@_ <= 1 ? \$_[0]->{$_} : (\$_[0]->{$_} = \$_[1]) }";
   die if $@;
@@ -386,7 +388,7 @@ sub start {
 
  my %args = @_;
 
- for (qw/action tool command/) {
+ for (qw<action tool command>) {
   my $base = 'Test::Valgrind::' . ucfirst;
   my $value = $args{$_};
   $self->_croak("Invalid $_") unless Scalar::Util::blessed($value)
@@ -394,7 +396,7 @@ sub start {
   $self->$_($args{$_})
  }
 
- delete @{$self}{qw/last_status exit_code/};
+ delete @{$self}{qw<last_status exit_code>};
 
  $self->tool->start($self);
  $self->parser($self->parser_class->new)->start($self);
@@ -426,7 +428,7 @@ sub report {
 
  return unless defined $report;
 
- for my $handler (qw/tool command/) {
+ for my $handler (qw<tool command>) {
   $report = $self->$handler->filter($self, $report);
   return unless defined $report;
  }
@@ -491,7 +493,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

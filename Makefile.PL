@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker;
 BEGIN {
  eval { require Config };
  die 'OS unsupported' if $@;
- Config->import(qw/%Config/);
+ Config->import(qw<%Config>);
  eval { require File::Spec };
  die 'OS unsupported' if $@;
 }
@@ -104,7 +104,7 @@ WriteMakefile(
  MIN_PERL_VERSION => 5.006,
  META_MERGE       => \%META,
  dist             => {
-  PREOP    => "pod2text $file > \$(DISTVNAME)/README",
+  PREOP    => "pod2text -u $file > \$(DISTVNAME)/README",
   COMPRESS => 'gzip -9f', SUFFIX => 'gz',
  },
  clean            => {

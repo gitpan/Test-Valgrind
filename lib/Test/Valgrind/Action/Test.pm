@@ -9,11 +9,11 @@ Test::Valgrind::Action::Test - Test that an analysis didn't generate any error r
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,7 @@ This action uses C<Test::Builder> to plan and pass or fail tests according to th
 
 use Test::Builder;
 
-use base qw/Test::Valgrind::Action Test::Valgrind::Action::Captor/;
+use base qw<Test::Valgrind::Action Test::Valgrind::Action::Captor>;
 
 =head1 METHODS
 
@@ -158,7 +158,7 @@ sub finish {
   seek $fh, $self->{capture_pos}, 0;
   $tb->diag($_) while <$fh>;
   close $fh or $self->_croak('close(capture[' . fileno($fh) . "]): $!");
-  delete @{$self}{qw/capture capture_pos/};
+  delete @{$self}{qw<capture capture_pos>};
  }
 
  my $failed = 0;
@@ -211,7 +211,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

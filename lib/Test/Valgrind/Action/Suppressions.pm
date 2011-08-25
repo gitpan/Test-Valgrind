@@ -9,11 +9,11 @@ Test::Valgrind::Action::Suppressions - Generate suppressions for a given tool.
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -21,7 +21,7 @@ This action just writes the contents of the suppressions reports received into t
 
 =cut
 
-use base qw/Test::Valgrind::Action Test::Valgrind::Action::Captor/;
+use base qw<Test::Valgrind::Action Test::Valgrind::Action::Captor>;
 
 =head1 METHODS
 
@@ -45,7 +45,7 @@ sub new {
 
  my %validated;
 
- for (qw/name target/) {
+ for (qw<name target>) {
   my $arg = delete $args{$_};
   $class->_croak("'$_' is expected to be a plain scalar")
                                                    unless $arg and not ref $arg;
@@ -54,7 +54,7 @@ sub new {
 
  my $self = $class->SUPER::new(%args);
 
- $self->{$_} = $validated{$_} for qw/name target/;
+ $self->{$_} = $validated{$_} for qw<name target>;
 
  $self;
 }
@@ -82,7 +82,7 @@ sub start {
 
  $self->SUPER::start($sess);
 
- delete @{$self}{qw/status supps diagnostics/};
+ delete @{$self}{qw<status supps diagnostics>};
 
  $self->save_fh(\*STDOUT => '>' => undef);
  $self->save_fh(\*STDERR => '>' => undef);
@@ -188,7 +188,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

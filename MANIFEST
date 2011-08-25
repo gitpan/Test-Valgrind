@@ -1,6 +1,7 @@
 Changes
 INSTALL.SKIP
 MANIFEST
+META.json
 META.yml
 Makefile.PL
 README
@@ -34,6 +35,7 @@ t/10-good.t
 t/20-bad.t
 t/70-session.t
 t/80-suppressions.t
+t/81-suppressions-demangle.t
 t/91-pod.t
 t/92-pod-coverage.t
 t/95-portability-files.t

@@ -3,7 +3,7 @@ package Test::Valgrind::Test::Action;
 use strict;
 use warnings;
 
-use base qw/Test::Valgrind::Action::Test/;
+use base qw<Test::Valgrind::Action::Test>;
 
 my $extra_tests;
 

@@ -9,11 +9,11 @@ Test::Valgrind::Parser::XML::Twig - Parse valgrind XML output with XML::Twig.
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -24,7 +24,7 @@ It is able to parse the XML output from C<valgrind> up to protocol version 4 and
 
 use Scalar::Util ();
 
-use base qw/Test::Valgrind::Parser::XML Test::Valgrind::Carp XML::Twig/;
+use base qw<Test::Valgrind::Parser::XML Test::Valgrind::Carp XML::Twig>;
 
 BEGIN { XML::Twig->add_options('Stash'); }
 
@@ -62,7 +62,7 @@ It is reset before and after the parsing phase, so it's effectively only availab
 =cut
 
 eval "sub $_ { \@_ <= 1 ? \$_[0]->{$_} : (\$_[0]->{$_} = \$_[1]) }"
-                                              for qw/_session protocol_version/;
+                                              for qw<_session protocol_version>;
 
 # We must store the session in ourselves because it's only possible to pass
 # arguments to XML::Twig objects by a global stash.
@@ -125,7 +125,7 @@ sub handle_error {
  $data->{stack} = [ map $_->listify_frame,
                                        $node->kid('stack')->children('frame') ];
 
- for (qw/leakedbytes leakedblocks/) {
+ for (qw<leakedbytes leakedblocks>) {
   my $kid = ($xwhat || $node)->first_child($_);
   next unless $kid;
   $data->{$_} = int $kid->text;
@@ -180,7 +180,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -190,11 +190,11 @@ This program is free software; you can redistribute it and/or modify it under th
 
 package Test::Valgrind::Parser::XML::Twig::Elt;
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 BEGIN { require XML::Twig; }
 
-use base qw/XML::Twig::Elt Test::Valgrind::Carp/;
+use base qw<XML::Twig::Elt Test::Valgrind::Carp>;
 
 sub kid {
  my ($self, $what) = @_;
@@ -212,7 +212,7 @@ sub listify_frame {
   map {
    my $x = $frame->first_child($_);
    $x ? $x->text : undef
-  } qw/ip obj fn dir file line/
+  } qw<ip obj fn dir file line>
  ];
 }
 

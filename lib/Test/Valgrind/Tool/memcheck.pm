@@ -9,11 +9,11 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -21,7 +21,7 @@ This class contains the information required by the session for running the C<me
 
 =cut
 
-use base qw/Test::Valgrind::Tool/;
+use base qw<Test::Valgrind::Tool>;
 
 =head1 METHODS
 
@@ -149,7 +149,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -159,11 +159,11 @@ This program is free software; you can redistribute it and/or modify it under th
 
 package Test::Valgrind::Tool::memcheck::Report;
 
-use base qw/Test::Valgrind::Report/;
+use base qw<Test::Valgrind::Report>;
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
-my @kinds = qw/
+my @kinds = qw<
  InvalidFree
  MismatchedFree
  InvalidRead
@@ -179,7 +179,7 @@ my @kinds = qw/
  Leak_IndirectlyLost
  Leak_PossiblyLost
  Leak_StillReachable
-/;
+>;
 push @kinds, __PACKAGE__->SUPER::kinds();
 
 my %kinds_hashed = map { $_ => 1 } @kinds;

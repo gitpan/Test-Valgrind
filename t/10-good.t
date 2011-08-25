@@ -15,7 +15,7 @@ if ($@) {
 {
  package Test::Valgrind::Test::Fake;
 
- use base qw/strict/;
+ use base qw<strict>;
 }
 
 plan tests => 1;

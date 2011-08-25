@@ -42,7 +42,7 @@ pod_coverage_ok('Test::Valgrind::Parser::Text', $trustparents);
 pod_coverage_ok('Test::Valgrind::Parser::XML', $trustparents);
 pod_coverage_ok('Test::Valgrind::Parser::XML::Twig', {
  %$trustparents,
- also_private => [ qr/^handle_/, qw/stash/ ],
+ also_private => [ qr/^handle_/, qw<stash> ],
 });
 
 pod_coverage_ok('Test::Valgrind::Report');

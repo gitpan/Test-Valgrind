@@ -1,5 +1,10 @@
 Revision history for Test-Valgrind
 
+1.13    2011-08-25 15:45 UTC
+        + Fix : The session will now call the finish() method at the right time.
+        + Fix : The README file is now properly UTF-8-encoded.
+        + Tst : Test demangling of Z-encoded symbols.
+
 1.12    2009-11-29 16:45 UTC
         + Doc : The front documentation in Test::Valgrind was improved.
         + Fix : Don't install Valgrind.so, as it's only used for testing.

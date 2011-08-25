@@ -9,11 +9,11 @@ Test::Valgrind::Action::Captor - Mock Test::Valgrind::Action for capturing outpu
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -25,7 +25,7 @@ It's not meant to be used directly as an action.
 
 use File::Spec ();
 
-use base qw/Test::Valgrind::Carp/;
+use base qw<Test::Valgrind::Carp>;
 
 =head1 METHODS
 
@@ -127,7 +127,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

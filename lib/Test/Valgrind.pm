@@ -9,11 +9,11 @@ Test::Valgrind - Generate suppressions, analyse and test any command with valgri
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 SYNOPSIS
 
@@ -166,7 +166,7 @@ sub analyse {
  my $sess = eval {
   Test::Valgrind::Session->new(
    min_version => $tool->requires_version,
-   map { $_ => delete $args{$_} } qw/extra_supps no_def_supp/
+   map { $_ => delete $args{$_} } qw<extra_supps no_def_supp>
   );
  };
  unless ($sess) {
@@ -369,7 +369,7 @@ All you people that showed interest in this module, which motivated me into comp
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008-2009 Vincent Pit, all rights reserved.
+Copyright 2008,2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

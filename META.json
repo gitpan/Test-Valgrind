@@ -1,0 +1,94 @@
+{
+   "abstract" : "Generate suppressions, analyse and test any command with valgrind.",
+   "author" : [
+      "Vincent Pit <perl@profvince.com>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "ExtUtils::MakeMaker version 6.59, CPAN::Meta::Converter version 2.112150",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Test-Valgrind",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "inc"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Carp" : 0,
+            "Digest::MD5" : 0,
+            "Env::Sanctify" : 0,
+            "ExtUtils::MakeMaker" : 0,
+            "Fcntl" : 0,
+            "File::HomeDir" : "0.86",
+            "File::Path" : 0,
+            "File::Spec" : 0,
+            "File::Temp" : "0.14",
+            "Filter::Util::Call" : 0,
+            "List::Util" : 0,
+            "POSIX" : 0,
+            "Perl::Destruct::Level" : 0,
+            "Scalar::Util" : 0,
+            "Test::Builder" : 0,
+            "Test::More" : 0,
+            "XML::Twig" : 0,
+            "base" : 0,
+            "version" : 0
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : 0,
+            "File::Spec" : 0
+         }
+      },
+      "runtime" : {
+         "recommends" : {
+            "DynaLoader" : 0,
+            "XSLoader" : 0
+         },
+         "requires" : {
+            "Carp" : 0,
+            "Digest::MD5" : 0,
+            "Env::Sanctify" : 0,
+            "Fcntl" : 0,
+            "File::HomeDir" : "0.86",
+            "File::Path" : 0,
+            "File::Spec" : 0,
+            "File::Temp" : "0.14",
+            "Filter::Util::Call" : 0,
+            "List::Util" : 0,
+            "POSIX" : 0,
+            "Perl::Destruct::Level" : 0,
+            "Scalar::Util" : 0,
+            "Test::Builder" : 0,
+            "Test::More" : 0,
+            "XML::Twig" : 0,
+            "base" : 0,
+            "perl" : "5.006",
+            "version" : 0
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind"
+      },
+      "homepage" : "http://search.cpan.org/dist/Test-Valgrind/",
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ],
+      "repository" : {
+         "url" : "http://git.profvince.com/?p=perl%2Fmodules%2FTest-Valgrind.git"
+      }
+   },
+   "version" : "1.13"
+}

@@ -9,11 +9,11 @@ Test::Valgrind::Parser::Suppressions::Text - Parse valgrind suppressions output 
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,7 @@ This is a L<Test::Valgrind::Parser::Text> object that can extract suppressions f
 
 use Test::Valgrind::Suppressions;
 
-use base qw/Test::Valgrind::Parser::Text Test::Valgrind::Carp/;
+use base qw<Test::Valgrind::Parser::Text Test::Valgrind::Carp>;
 
 =head1 METHODS
 
@@ -79,11 +79,11 @@ sub parse {
 
    my %call; # Frames to append (if the value is 1) or to prepend (if it's 0)
    if ($t eq 'm') {       # malloc can also be called by calloc or realloc
-    $call{$_} = 1 for qw/calloc realloc/;
+    $call{$_} = 1 for qw<calloc realloc>;
    } elsif ($t eq 're') { # realloc can also call malloc or free
-    $call{$_} = 0 for qw/malloc free/;
+    $call{$_} = 0 for qw<malloc free>;
    } elsif ($t eq 'c') {  # calloc can also call malloc
-    $call{$_} = 0 for qw/malloc/;
+    $call{$_} = 0 for qw<malloc>;
    }
 
    my $c = $_;
@@ -128,7 +128,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -138,7 +138,7 @@ This program is free software; you can redistribute it and/or modify it under th
 
 package Test::Valgrind::Report::Suppressions;
 
-use base qw/Test::Valgrind::Report/;
+use base qw<Test::Valgrind::Report>;
 
 sub kinds { shift->SUPER::kinds(), 'Suppression' }
 

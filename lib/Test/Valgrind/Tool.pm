@@ -9,11 +9,11 @@ Test::Valgrind::Tool - Base class for Test::Valgrind tools.
 
 =head1 VERSION
 
-Version 1.12
+Version 1.13
 
 =cut
 
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 =head1 DESCRIPTION
 
@@ -24,7 +24,7 @@ They are expected to function both in suppressions generation and in analysis mo
 
 =cut
 
-use base qw/Test::Valgrind::Component Test::Valgrind::Carp/;
+use base qw<Test::Valgrind::Component Test::Valgrind::Carp>;
 
 =head1 METHODS
 
@@ -158,7 +158,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
