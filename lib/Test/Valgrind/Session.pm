@@ -9,11 +9,11 @@ Test::Valgrind::Session - Test::Valgrind session object.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -34,7 +34,16 @@ use base qw<Test::Valgrind::Carp>;
 
 =head1 METHODS
 
-=head2 C<< new search_dirs => \@search_dirs, valgrind => [ $valgrind | \@valgrind ], min_version => $min_version, no_def_supp => $no_def_supp, extra_supps => \@extra_supps >>
+=head2 C<new>
+
+    my $tvs = Test::Valgrind::Session->new(
+     search_dirs => \@search_dirs,
+     valgrind    => $valgrind,  # One candidate
+     valgrind    => \@valgrind, # Several candidates
+     min_version => $min_version,
+     no_def_supp => $no_def_supp,
+     extra_supps => \@extra_supps,
+    );
 
 The package constructor, which takes several options :
 
@@ -130,9 +139,13 @@ sub new {
 
 =head2 C<valgrind>
 
+    my $valgrind_path = $tvs->valgrind;
+
 The path to the selected C<valgrind> executable.
 
 =head2 C<version>
+
+    my $valgrind_version = $tvs->version;
 
 The L<version> object associated to the selected C<valgrind>.
 
@@ -149,6 +162,8 @@ sub version {
 
 =head2 C<no_def_supp>
 
+    my $no_def_supp = $tvs->no_def_supp;
+
 Read-only accessor for the C<no_def_supp> option.
 
 =cut
@@ -157,13 +172,21 @@ eval "sub $_ { \$_[0]->{$_} }" for qw<valgrind no_def_supp>;
 
 =head2 C<extra_supps>
 
+    my @extra_supps = $tvs->extra_supps;
+
 Read-only accessor for the C<extra_supps> option.
 
 =cut
 
 sub extra_supps { @{$_[0]->{extra_supps} || []} }
 
-=head2 C<< run action => $action, tool => $tool, command => $command >>
+=head2 C<run>
+
+    $tvs->run(
+     action  => $action,
+     tool    => $tool,
+     command => $command,
+    );
 
 Runs the command C<$command> through C<valgrind> with the tool C<$tool>, which will report to the action C<$action>.
 
@@ -358,6 +381,8 @@ sub def_supp_file {
 
 =head2 C<suppressions>
 
+    my @suppressions = $tvs->suppressions;
+
 Returns the list of all the suppressions that will be passed to C<valgrind>.
 Honors L</no_def_supp> and L</extra_supps>.
 
@@ -377,6 +402,12 @@ sub suppressions {
 }
 
 =head2 C<start>
+
+    $tvs->start(
+     action  => $action,
+     tool    => $tool,
+     command => $command,
+    );
 
 Starts the action and tool associated to the current run.
 It's automatically called at the beginning of L</run>.
@@ -405,7 +436,9 @@ sub start {
  return;
 }
 
-=head2 C<abort $msg>
+=head2 C<abort>
+
+    $tvs->abort($msg);
 
 Forwards to C<< ->action->abort >> after unshifting the session object to the argument list.
 
@@ -417,7 +450,9 @@ sub abort {
  $self->action->abort($self, @_);
 }
 
-=head2 C<report $report>
+=head2 C<report>
+
+    $tvs->report($report);
 
 Forwards to C<< ->action->report >> after unshifting the session object to the argument list.
 
@@ -437,6 +472,8 @@ sub report {
 }
 
 =head2 C<finish>
+
+    $tvs->finish;
 
 Finishes the action and tool associated to the current run.
 It's automatically called at the end of L</run>.
@@ -461,6 +498,8 @@ sub finish {
 }
 
 =head2 C<status>
+
+    my $status = $tvs->status;
 
 Returns the status code of the last run of the session.
 
@@ -493,7 +532,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

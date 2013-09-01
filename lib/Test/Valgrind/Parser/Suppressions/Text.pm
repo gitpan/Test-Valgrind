@@ -9,11 +9,11 @@ Test::Valgrind::Parser::Suppressions::Text - Parse valgrind suppressions output 
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -128,7 +128,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

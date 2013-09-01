@@ -26,7 +26,7 @@ configure_requires:
   ExtUtils::MakeMaker: 0
   File::Spec: 0
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.59, CPAN::Meta::Converter version 2.112150'
+generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -60,8 +60,8 @@ requires:
   perl: 5.006
   version: 0
 resources:
-  bugtracker: http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Valgrind
+  bugtracker: http://rt.cpan.org/Dist/Display.html?Name=Test-Valgrind
   homepage: http://search.cpan.org/dist/Test-Valgrind/
   license: http://dev.perl.org/licenses/
   repository: http://git.profvince.com/?p=perl%2Fmodules%2FTest-Valgrind.git
-version: 1.13
+version: 1.14

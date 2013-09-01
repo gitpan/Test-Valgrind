@@ -18,6 +18,12 @@
 
 const char *tv_leaky = NULL;
 
+extern void tv_leak(void) {
+ tv_leaky = malloc(10000);
+
+ return;
+}
+
 /* --- XS ------------------------------------------------------------------ */
 
 MODULE = Test::Valgrind            PACKAGE = Test::Valgrind
@@ -33,7 +39,7 @@ BOOT:
 void
 leak()
 CODE:
- tv_leaky = malloc(10000);
+ tv_leak();
  XSRETURN_UNDEF;
 
 SV *

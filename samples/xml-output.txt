@@ -30,7 +30,7 @@ Design goals
 How to use
 ~~~~~~~~~~
 
-Run with flag --xml=yes.  That`s all.  Note however several 
+Run with flag --xml=yes.  That`s all.  Note however several
 caveats.
 
 * At the present time only Memcheck is supported.  The scheme extends
@@ -196,8 +196,8 @@ following in sequence:
 
 * The following, indicating that the program has now started:
 
-     <status> <state>RUNNING</state> 
-              <time>human-readable-time-string</time> 
+     <status> <state>RUNNING</state>
+              <time>human-readable-time-string</time>
      </status>
 
 * Zero or more of (either ERROR or ERRORCOUNTS).
@@ -205,8 +205,8 @@ following in sequence:
 * The following, indicating that the program has now finished, and
   that the wrapup (leak checking) is happening.
 
-     <status> <state>FINISHED</state> 
-              <time>human-readable-time-string</time> 
+     <status> <state>FINISHED</state>
+              <time>human-readable-time-string</time>
      </status>
 
 * SUPPCOUNTS, indicating how many times each suppression was used.
@@ -265,7 +265,7 @@ is as follows:
      description (usually of invalid addresses)
 
      STACK gives an auxiliary stack (usually the allocation/free
-     point of a block).  If this STACK is present then 
+     point of a block).  If this STACK is present then
      <auxwhat>TEXT</auxwhat> will precede it.
 
 
@@ -343,7 +343,7 @@ STACK
 -----
 STACK indicates locations in the program being debugged.  A STACK
 is one or more FRAMEs.  The first is the innermost frame, the
-next its caller, etc.  
+next its caller, etc.
 
    <stack>
       one or more FRAME

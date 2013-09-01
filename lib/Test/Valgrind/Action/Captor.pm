@@ -9,11 +9,11 @@ Test::Valgrind::Action::Captor - Mock Test::Valgrind::Action for capturing outpu
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -50,7 +50,10 @@ sub _dup_fh {
              or $_[0]->_croak('open(' . fileno($_[1]) . ", '$_[2]&', $fd): $!");
 }
 
-=head2 C<save_fh $from, $mode [, $to ]>
+=head2 C<save_fh>
+
+    $tva->save_fh($from, $mode);
+    $tva->save_fh($from, $mode, $to);
 
 Save the original filehandle C<$from> opened with mode C<$mode>, and redirect it to C<$to> if it's defined or to F</dev/null> otherwise.
 
@@ -77,6 +80,8 @@ sub save_fh {
 }
 
 =head2 C<restore_all_fh>
+
+    $tva->restore_all_fh;
 
 Restore all the filehandles that were saved with L</save_fh> to their original state.
 
@@ -127,7 +132,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

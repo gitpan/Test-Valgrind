@@ -9,11 +9,11 @@ Test::Valgrind::Suppressions - Generate suppressions for given tool and command.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -25,7 +25,13 @@ use base qw<Test::Valgrind::Carp>;
 
 =head1 METHODS
 
-=head2 C<< generate tool => $tool, command => $command, target => $target >>
+=head2 C<generate>
+
+    Test::Valgrind::Suppressions->generate(
+     tool    => $tool,
+     command => $command,
+     target  => $target,
+    );
 
 Generates suppressions for the command C<< $command->new_trainer >> and the tool C<< $tool->new_trainer >>, and writes them in the file specified by C<$target>.
 The action used behind the scenes is L<Test::Valgrind::Action::Suppressions>.
@@ -88,7 +94,12 @@ sub generate {
  return $status;
 }
 
-=head2 C<strip_tail $session, $suppression>
+=head2 C<strip_tail>
+
+    my $mangled_suppression = Test::Valgrind::Suppressions->strip_tail(
+     $session,
+     $suppression,
+    );
 
 Removes all wildcard frames at the end of the suppression.
 Moreover, C<'...'> is appended when C<valgrind> C<3.4.0> or higher is used.
@@ -111,7 +122,11 @@ sub strip_tail {
  $supp;
 }
 
-=head2 C<maybe_z_demangle $symbol>
+=head2 C<maybe_z_demangle>
+
+    my $demangled_symbol = Test::Valgrind::Suppressions->maybe_z_demangle(
+     $symbol,
+    );
 
 If C<$symbol> is Z-encoded as described in C<valgrind>'s F<include/pub_tool_redir.h>, extract and decode its function name part.
 Otherwise, C<$symbol> is returned as is.
@@ -182,7 +197,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008,2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2008,2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

@@ -182,8 +182,8 @@ the following in sequence:
 
 * The following, indicating that the program has now started:
 
-     <status> <state>RUNNING</state> 
-              <time>human-readable-time-string</time> 
+     <status> <state>RUNNING</state>
+              <time>human-readable-time-string</time>
      </status>
 
   The format of this string is not defined, but it is expected to be
@@ -195,8 +195,8 @@ the following in sequence:
 * The following, indicating that the program has now finished, and
   that the any final wrapup (eg, for Memcheck, leak checking) is happening.
 
-     <status> <state>FINISHED</state> 
-              <time>human-readable-time-string</time> 
+     <status> <state>FINISHED</state>
+              <time>human-readable-time-string</time>
      </status>
 
 * Zero or more of (either ERRORCOUNTS or TOOLSPECIFIC).  In Memcheck's
@@ -221,7 +221,7 @@ STACK
 -----
 STACK indicates locations in the program being debugged.  A STACK
 is one or more FRAMEs.  The first is the innermost frame, the
-next its caller, etc.  
+next its caller, etc.
 
    <stack>
       one or more FRAME
@@ -598,7 +598,7 @@ The possible values are:
 
    Heap
 
-      Usage of a pointer derived from a heap block, to access 
+      Usage of a pointer derived from a heap block, to access
       outside that heap block
 
    Arith

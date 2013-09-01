@@ -28,16 +28,12 @@ lib/Test/Valgrind/Suppressions.pm
 lib/Test/Valgrind/Tool.pm
 lib/Test/Valgrind/Tool/memcheck.pm
 samples/map.pl
-samples/xml-output.txt
 samples/xml-output-protocol4.txt
+samples/xml-output.txt
 t/00-load.t
 t/10-good.t
 t/20-bad.t
 t/70-session.t
 t/80-suppressions.t
 t/81-suppressions-demangle.t
-t/91-pod.t
-t/92-pod-coverage.t
-t/95-portability-files.t
-t/99-kwalitee.t
 t/lib/Test/Valgrind/Test/Action.pm

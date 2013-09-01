@@ -9,17 +9,18 @@ Test::Valgrind::Command - Base class for Test::Valgrind commands.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
 This class is the base for L<Test::Valgrind> commands.
 
-Commands gather information about the target of the analysis. They should also provide a default setup for generating suppressions.
+Commands gather information about the target of the analysis.
+They should also provide a default setup for generating suppressions.
 
 =cut
 
@@ -27,7 +28,12 @@ use base qw<Test::Valgrind::Carp>;
 
 =head1 METHODS
 
-=head2 C<< new command => $command, args => \@args >>
+=head2 C<new>
+
+    my $tvc = Test::Valgrind::Command->new(
+     command => $command,
+     args    => \@args,
+    );
 
 Creates a new command object of type C<$command> by requiring and redispatching the method call to the module named C<$command> if it contains C<'::'> or to C<Test::Valgrind::Command::$command> otherwise.
 The class represented by C<$command> must inherit this class.
@@ -67,7 +73,9 @@ Defaults to return C<undef>, which skips suppression generation.
 
 sub new_trainer { }
 
-=head2 C<args $session>
+=head2 C<args>
+
+    my @args = $tvc->args($session);
 
 Returns the list of command-specific arguments that are to be passed to C<valgrind>.
 
@@ -77,7 +85,9 @@ Defaults to return the contents of the C<args> option.
 
 sub args { @{$_[0]->{args} || []} }
 
-=head2 C<env $session>
+=head2 C<env>
+
+    my $env = $tvc->env($session);
 
 This event is called in scalar context before the command is ran, and the returned value goes out of scope when the analysis ends.
 It's useful for e.g. setting up C<%ENV> for the child process by returning an L<Env::Sanctify> object, hence the name.
@@ -88,7 +98,9 @@ Defaults to void.
 
 sub env { }
 
-=head2 C<suppressions_tag $session>
+=head2 C<suppressions_tag>
+
+    my $tag = $tvc->suppressions_tag($session);
 
 Returns a identifier that will be used to pick up the right suppressions for running the command, or C<undef> to indicate that no special suppressions are needed.
 
@@ -98,7 +110,9 @@ This method must be implemented when subclassing.
 
 sub suppressions_tag;
 
-=head2 C<filter $session, $report>
+=head2 C<filter>
+
+    my $filtered_report = $tvc->filter($session, $report);
 
 The C<$session> calls this method after receiving a report from the tool and before forwarding it to the action.
 You can either return a mangled C<$report> (which does not need to be a clone of the original) or C<undef> if you want the action to ignore it completely.
@@ -132,7 +146,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

@@ -9,11 +9,11 @@ Test::Valgrind::Action - Base class for Test::Valgrind actions.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,9 @@ use base qw<Test::Valgrind::Component Test::Valgrind::Carp>;
 
 =head1 METHODS
 
-=head2 C<< new action => $action >>
+=head2 C<new>
+
+    my $tva = Test::Valgrind::Action->new(action => $action);
 
 Creates a new action object of type C<$action> by requiring and redispatching the method call to the module named C<$action> if it contains C<'::'> or to C<Test::Valgrind::Action::$action> otherwise.
 The class represented by C<$action> must inherit this class.
@@ -60,13 +62,17 @@ Indicates if the action wants C<valgrind> to run in suppression-generating mode 
 
 sub do_suppressions { 0 }
 
-=head2 C<start $session>
+=head2 C<start>
+
+    $tva->start($session);
 
 Called when the C<$session> starts.
 
 Defaults to set L<Test::Valgrind::Component/started>.
 
-=head2 C<report $session, $report>
+=head2 C<report>
+
+    $tva->report($session, $report);
 
 Invoked each time the C<valgrind> process attached to the C<$session> spots an error.
 C<$report> is a L<Test::Valgrind::Report> object describing the error.
@@ -83,7 +89,9 @@ sub report {
  return;
 }
 
-=head2 C<abort $session, $msg>
+=head2 C<abort>
+
+    $tva->abort($session, $msg);
 
 Triggered when the C<$session> has to interrupt the action.
 
@@ -93,13 +101,17 @@ Defaults to croak.
 
 sub abort { $_[0]->_croak($_[2]) }
 
-=head2 C<finish $session>
+=head2 C<finish>
+
+    $tva->finish($session);
 
 Called when the C<$session> finishes.
 
 Defaults to clear L<Test::Valgrind::Component/started>.
 
-=head2 C<status $session>
+=head2 C<status>
+
+    $tva->status($session);
 
 Returns the status code corresponding to the last run of the action.
 
@@ -139,7 +151,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

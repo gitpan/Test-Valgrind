@@ -9,11 +9,11 @@ Test::Valgrind - Generate suppressions, analyse and test any command with valgri
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 SYNOPSIS
 
@@ -49,7 +49,9 @@ As such, it's complementary to the other very good leak detectors listed in the 
 
 =head1 METHODS
 
-=head2 C<analyse [ %options ]>
+=head2 C<analyse>
+
+    Test::Valgrind->analyse(%options);
 
 Run a C<valgrind> analysis configured by C<%options> :
 
@@ -194,7 +196,9 @@ sub analyse {
  return $status;
 }
 
-=head2 C<import [ %options ]>
+=head2 C<import>
+
+    use Test::Valgrind %options;
 
 In the parent process, L</import> calls L</analyse> with the arguments it received itself - except that if no C<file> option was supplied, it tries to pick the first caller context that looks like a script.
 When the analysis ends, it exits with the status returned by the action (for the default TAP-generator action, it's the number of failed tests).
@@ -369,7 +373,7 @@ All you people that showed interest in this module, which motivated me into comp
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008,2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2008,2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

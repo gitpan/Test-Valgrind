@@ -9,11 +9,11 @@ Test::Valgrind::Component - Base class for Test::Valgrind components.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -28,6 +28,8 @@ use base qw<Test::Valgrind::Carp>;
 =head1 METHODS
 
 =head2 C<new>
+
+    my $tvc = Test::Valgrind::Component->new;
 
 Basic constructor.
 
@@ -50,7 +52,9 @@ sub new {
  }, $class;
 }
 
-=head2 C<started [ $bool ]>
+=head2 C<started>
+
+    $tvc->started($bool);
 
 Specifies whether the component is running (C<1>), stopped (C<0>) or was never started (C<undef>).
 
@@ -59,6 +63,8 @@ Specifies whether the component is running (C<1>), stopped (C<0>) or was never s
 sub started { @_ <= 1 ? $_[0]->{started} : ($_[0]->{started} = $_[1] ? 1 : 0) }
 
 =head2 C<start>
+
+    $tvc->start;
 
 Marks the component as started, and throws an exception if it was already.
 Returns its self object.
@@ -75,6 +81,8 @@ sub start {
 }
 
 =head2 C<finish>
+
+    $tvc->finish;
 
 Marks the component as stopped, and throws an exception if it wasn't started.
 Returns its self object.
@@ -113,7 +121,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

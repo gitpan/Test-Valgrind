@@ -9,11 +9,11 @@ Test::Valgrind::Tool::memcheck - Run an analysis through the memcheck tool.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -29,13 +29,20 @@ This class inherits L<Test::Valgrind::Tool>.
 
 =head2 C<requires_version>
 
+    my $required_version = $tvt->requires_version;
+
 This tool requires C<valgrind> C<3.1.0>.
 
 =cut
 
 sub requires_version { '3.1.0' }
 
-=head2 C<< new callers => $callers, ... >>
+=head2 C<new>
+
+    my $tvtm = Test::Valgrind::Tool::memcheck->new(
+     callers => $callers,
+     %extra_args,
+    );
 
 Your usual constructor.
 
@@ -65,6 +72,8 @@ sub new_trainer { shift->new(callers => 50) }
 
 =head2 C<callers>
 
+    my $callers = $tvtm->callers;
+
 Read-only accessor for the C<callers> option.
 
 =cut
@@ -73,7 +82,9 @@ sub callers { $_[0]->{callers} }
 
 sub suppressions_tag { 'memcheck-' . $_[1]->version }
 
-=head2 C<parser_class $session>
+=head2 C<parser_class>
+
+    my $parser_class = $tvtm->parser_class($session);
 
 This tool uses a L<Test::Valgrind::Parser::XML::Twig> parser in analysis mode, and a L<Test::Valgrind::Parser::Suppressions::Text> parser in suppressions mode.
 
@@ -92,7 +103,9 @@ sub parser_class {
  return $class;
 }
 
-=head2 C<report_class $session>
+=head2 C<report_class>
+
+    my $report_class = $tvtm->report_class($session);
 
 This tool emits C<Test::Valgrind::Tool::memcheck::Report> object reports in analysis mode, and C<Test::Valgrind::Report::Suppressions> object reports in suppressions mode.
 
@@ -149,7 +162,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -161,7 +174,7 @@ package Test::Valgrind::Tool::memcheck::Report;
 
 use base qw<Test::Valgrind::Report>;
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 my @kinds = qw<
  InvalidFree

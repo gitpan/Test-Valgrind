@@ -9,11 +9,11 @@ Test::Valgrind::Command::Aggregate - A Test::Valgrind command that aggregates se
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -29,7 +29,12 @@ use base qw<Test::Valgrind::Command Test::Valgrind::Carp>;
 
 This class inherits L<Test::Valgrind::Command>.
 
-=head2 C<< new commands => \@commands, ... >>
+=head2 C<new>
+
+    my $tvca = Test::Valgrind::Command::Aggregate->new(
+     commands => \@commands,
+     %extra_args,
+    );
 
 =cut
 
@@ -60,6 +65,8 @@ sub new {
 
 =head2 C<commands>
 
+    my @commands = $tvca->commands;
+
 Read-only accessor for the C<commands> option.
 
 =cut
@@ -89,7 +96,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

@@ -9,11 +9,11 @@ Test::Valgrind::Parser::XML::Twig - Parse valgrind XML output with XML::Twig.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -57,7 +57,7 @@ sub stash { shift->{Stash} }
 =head2 C<protocol_version>
 
 The version of the protocol that the current stream is conforming to.
-It is reset before and after the parsing phase, so it's effectively only available from inside L</parse>.
+It is reset before and after the parsing phase, so it's effectively only available from inside C<parse>.
 
 =cut
 
@@ -180,7 +180,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
@@ -190,7 +190,7 @@ This program is free software; you can redistribute it and/or modify it under th
 
 package Test::Valgrind::Parser::XML::Twig::Elt;
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 BEGIN { require XML::Twig; }
 

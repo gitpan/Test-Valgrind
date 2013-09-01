@@ -9,11 +9,11 @@ Test::Valgrind::Action::Suppressions - Generate suppressions for a given tool.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,13 @@ use base qw<Test::Valgrind::Action Test::Valgrind::Action::Captor>;
 
 This class inherits L<Test::Valgrind::Action>.
 
-=head2 C<< new name => $name, target => $target, ... >>
+=head2 C<new>
+
+    my $tvas = Test::Valgrind::Action::Suppressions->new(
+     name   => $name,
+     target => $target,
+     %extra_args,
+    );
 
 Your usual constructor.
 
@@ -63,6 +69,8 @@ sub do_suppressions { 1 }
 
 =head2 C<name>
 
+    my $name = $tvas->name;
+
 Read-only accessor for the C<name> option.
 
 =cut
@@ -70,6 +78,8 @@ Read-only accessor for the C<name> option.
 sub name   { $_[0]->{name} }
 
 =head2 C<target>
+
+    my $target = $tvas->target;
 
 Read-only accessor for the C<target> option.
 
@@ -188,7 +198,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

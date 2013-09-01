@@ -9,11 +9,11 @@ Test::Valgrind::Parser - Base class for Test::Valgrind parsers.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -27,17 +27,23 @@ use base qw<Test::Valgrind::Component Test::Valgrind::Carp>;
 
 =head2 C<new>
 
+    my $tvp = Test::Valgrind::Parser->new;
+
 The parser constructor, called without arguments.
 
 Defaults to L<Test::Valgrind::Component/new>.
 
-=head2 C<start $session>
+=head2 C<start>
+
+    $tvp->start($session);
 
 Called when the C<$session> starts.
 
 Defaults to set L<Test::Valgrind::Component/started>.
 
-=head2 C<args $session, $fh>
+=head2 C<args>
+
+    my @args = $tvp->args($session, $fh);
 
 Returns the list of parser-specific arguments that are to be passed to the C<valgrind> process spawned by the session C<$session> and whose output will be captured by the filehandle C<$fh>.
 
@@ -47,7 +53,9 @@ Defaults to the empty list.
 
 sub args { }
 
-=head2 C<parse $session, $fh>
+=head2 C<parse>
+
+    $tvp->parse($session, $fh);
 
 Parse the output of the C<valgrind> process attached to the session C<$session> received through the filehandle C<$fh>.
 
@@ -57,7 +65,9 @@ This method must be implemented when subclassing.
 
 sub parse;
 
-=head2 C<finish $session>
+=head2 C<finish>
+
+    $tvp->finish($session);
 
 Called when the C<$session> finishes.
 
@@ -86,7 +96,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

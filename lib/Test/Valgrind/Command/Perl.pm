@@ -9,11 +9,11 @@ Test::Valgrind::Command::Perl - A Test::Valgrind command that invokes perl.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -32,7 +32,14 @@ use base qw<Test::Valgrind::Command Test::Valgrind::Carp>;
 
 This class inherits L<Test::Valgrind::Command>.
 
-=head2 C<< new perl => $^X, inc => \@INC, taint_mode => $taint_mode, ... >>
+=head2 C<new>
+
+    my $tvcp = Test::Valgrind::Command::Perl->new(
+     perl       => $^X,
+     inc        => \@INC,
+     taint_mode => $taint_mode,
+     %extra_args,
+    );
 
 The package constructor, which takes several options :
 
@@ -107,6 +114,8 @@ sub new_trainer {
 
 =head2 C<perl>
 
+    my $perl = $tvcp->perl;
+
 Read-only accessor for the C<perl> option.
 
 =cut
@@ -115,6 +124,8 @@ sub perl { $_[0]->{perl} }
 
 =head2 C<inc>
 
+    my @inc = $tvcp->inc;
+
 Read-only accessor for the C<inc> option.
 
 =cut
@@ -122,6 +133,8 @@ Read-only accessor for the C<inc> option.
 sub inc { @{$_[0]->{inc} || []} }
 
 =head2 C<taint_mode>
+
+    my $taint_mode = $tvcp->taint_mode;
 
 Read-only accessor for the C<taint_mode> option.
 
@@ -138,7 +151,9 @@ sub args {
         $self->SUPER::args(@_);
 }
 
-=head2 C<env $session>
+=head2 C<env>
+
+    my $env = $tvcp->env($session);
 
 Returns an L<Env::Sanctify> object that sets the environment variables C<PERL_DESTRUCT_LEVEL> to C<3> and C<PERL_DL_NONLAZY> to C<1> during the run.
 
@@ -224,7 +239,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

@@ -30,8 +30,15 @@ sub report_smart {
 
  if ($report->can('is_leak') and $report->is_leak) {
   my $data  = $report->data;
-  my $trace = join ' ', map { $_->[2] } @{$data->{stack} || []}[0 .. 2];
-  if ($trace eq 'malloc XS_Test__Valgrind_leak Perl_pp_entersub') {
+  my @trace = map $_->[2] || '?',
+               @{$data->{stack} || []}[0 .. 3];
+  my $valid_trace = (
+       $trace[0] eq 'malloc'
+   and $trace[1] eq 'tv_leak'
+   and ($trace[2] eq 'Perl_pp_entersub' or $trace[3] eq 'Perl_pp_entersub')
+  );
+
+  if ($valid_trace) {
    my $tb = Test::Builder->new;
    $tb->diag("The subsequent report was correctly caught:\n" . $report->dump);
    $tb->is_eq($data->{leakedbytes},  10_000, '10_000 bytes leaked');

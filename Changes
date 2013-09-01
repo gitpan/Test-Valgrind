@@ -1,5 +1,14 @@
 Revision history for Test-Valgrind
 
+1.14    2013-09-01 17:10 UTC
+        This is a maintenance release. The code contains no functional change.
+        Satisfied users of version 1.13 can skip this update.
+        + Doc : POD headings are now properly linkable.
+        + Tst : Author tests are no longer bundled with this distribution.
+                They are only made available to authors in the git repository.
+        + Tst : The stack traces used in t/20-bad.t have been made more
+                predictable when compiler optimizations are in use.
+
 1.13    2011-08-25 15:45 UTC
         + Fix : The session will now call the finish() method at the right time.
         + Fix : The README file is now properly UTF-8-encoded.

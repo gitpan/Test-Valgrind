@@ -9,11 +9,11 @@ Test::Valgrind::Report - Base class for Test::Valgrind error reports.
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,13 @@ The C<Diag> kind is reserved for diagnostics.
 
 use base qw<Test::Valgrind::Carp>;
 
-=head2 C<< new kind => $kind, id => $id, data => $data >>
+=head2 C<new>
+
+   my $tvr = Test::Valgrind::Report->new(
+    kind => $kind,
+    id   => $id,
+    data => $data,
+   );
 
 Your usual constructor.
 
@@ -73,7 +79,9 @@ sub new {
  }, $class;
 }
 
-=head2 C<< new_diag $data >>
+=head2 C<new_diag>
+
+    my $diag_report = Test::Valgrind::Report->new_diag($data);
 
 Constructs a report with kind C<'Diag'>, an auto-incremented identifier and the given C<$data>.
 
@@ -85,6 +93,8 @@ sub new_diag { shift->new(kind => 'Diag', id => ++$diag_id, data => $_[0]) }
 
 =head2 C<kind>
 
+    my $kind = $tvr->kind;
+
 Read-only accessor for the C<kind> option.
 
 =cut
@@ -92,6 +102,8 @@ Read-only accessor for the C<kind> option.
 sub kind { $_[0]->{kind} }
 
 =head2 C<id>
+
+    my $id = $tvr->id;
 
 Read-only accessor for the C<id> option.
 
@@ -101,6 +113,8 @@ sub id { $_[0]->{id} }
 
 =head2 C<data>
 
+    my $data = $tvr->data;
+
 Read-only accessor for the C<data> option.
 
 =cut
@@ -108,6 +122,8 @@ Read-only accessor for the C<data> option.
 sub data { $_[0]->{data} }
 
 =head2 C<is_diag>
+
+    $tvr->is_diag;
 
 Tells if a report has the C<'Diag'> kind, i.e. is a diagnostic.
 
@@ -117,6 +133,8 @@ sub is_diag { $_[0]->kind eq 'Diag' }
 
 =head2 C<kinds>
 
+    my @kinds = $tvr->kinds;
+
 Returns the list of valid kinds for this report class.
 
 Defaults to C<'Diag'>.
@@ -125,7 +143,9 @@ Defaults to C<'Diag'>.
 
 sub kinds { 'Diag' }
 
-=head2 C<valid_kind $kind>
+=head2 C<valid_kind>
+
+    $tvr->valid_kind($kind);
 
 Tells whether C<$kind> is a valid kind for this report class.
 
@@ -158,7 +178,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

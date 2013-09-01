@@ -9,11 +9,11 @@ Test::Valgrind::Command::PerlScript - A Test::Valgrind command that invokes a pe
 
 =head1 VERSION
 
-Version 1.13
+Version 1.14
 
 =cut
 
-our $VERSION = '1.13';
+our $VERSION = '1.14';
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,13 @@ use base qw<Test::Valgrind::Command::Perl Test::Valgrind::Carp>;
 
 This class inherits L<Test::Valgrind::Command::Perl>.
 
-=head2 C<< new file => $file, [ taint_mode => $taint_mode ], ... >>
+=head2 C<new>
+
+    my $tvcps = Test::Valgrind::Command::PerlScript->new(
+     file       => $file,
+     taint_mode => $taint_mode,
+     %extra_args,
+    );
 
 The package constructor, which takes several options :
 
@@ -82,6 +88,8 @@ sub new_trainer { Test::Valgrind::Command::Perl->new_trainer }
 
 =head2 C<file>
 
+    my $file = $tvcps->file;
+
 Read-only accessor for the C<file> option.
 
 =cut
@@ -118,7 +126,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009,2010,2011 Vincent Pit, all rights reserved.
+Copyright 2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 

@@ -3,7 +3,7 @@ NAME
     with valgrind.
 
 VERSION
-    Version 1.13
+    Version 1.14
 
 SYNOPSIS
         # From the command-line
@@ -48,7 +48,9 @@ DESCRIPTION
     ALSO" section.
 
 METHODS
-  "analyse [ %options ]"
+  "analyse"
+        Test::Valgrind->analyse(%options);
+
     Run a "valgrind" analysis configured by %options :
 
     *   "command => $command"
@@ -103,7 +105,9 @@ METHODS
 
         Defaults to false.
 
-  "import [ %options ]"
+  "import"
+        use Test::Valgrind %options;
+
     In the parent process, "import" calls "analyse" with the arguments it
     received itself - except that if no "file" option was supplied, it tries
     to pick the first caller context that looks like a script. When the
@@ -185,7 +189,7 @@ ACKNOWLEDGEMENTS
     into completely rewriting it.
 
 COPYRIGHT & LICENSE
-    Copyright 2008,2009,2010,2011 Vincent Pit, all rights reserved.
+    Copyright 2008,2009,2010,2011,2013 Vincent Pit, all rights reserved.
 
     This program is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
